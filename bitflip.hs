@@ -35,27 +35,25 @@ flips alpha randoms = map (cut alpha) randoms
             | p < alpha = False 
             | otherwise = True
 
-recurse :: [Bit] -> [Float] -> Float -> IO [Bit]
+recurse :: [Bit] -> [Float] -> Float -> [[Bit]]
 recurse bits rnds alpha  
-    | onemax bits == length bits = return bits 
-    | otherwise = continue bits rnds alpha  
+    | onemax bits == length bits = [bits] 
+    | otherwise = bits : continue bits rnds alpha  
 
 mutate :: [Bit] -> [Bit] -> [Bit] 
 mutate bits flips = map flipit (zip bits flips)
     where flipit (x,y) = (not x) && y
 
-continue :: [Bit] -> [Float] -> Float -> IO [Bit]
-continue bits rnds alpha = do 
-    putStrLn (show bits)
-    recurse mutated rnds' alpha
+continue :: [Bit] -> [Float] -> Float -> [[Bit]]
+continue bits rnds alpha = recurse mutated rnds' alpha
     where 
         mutated = mutate bits (flips alpha randomfloats)
         rnds' = drop (length bits) rnds
         randomfloats = take (length bits) rnds
 
-main :: IO [Bit]
+main :: IO () 
 main = do 
-    recurse example randomlist alpha
+    putStrLn (show (recurse example randomlist alpha))
     where 
         alpha = 0.25
         example = [False, False, False, False] 
