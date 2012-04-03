@@ -26,14 +26,14 @@ type Probability = Float
 onemax :: [Bit] -> Int
 onemax bits = foldl (\x y -> x + y) 0 (map convert bits)
     where convert bit 
-        | bit == True = 1 
-        | bit == False = 0
+            | bit == True = 1 
+            | bit == False = 0
 
 flips :: Probability -> [Probability] -> [Bit]
 flips alpha randoms = map (cut alpha) randoms 
     where cut alpha p 
-        | p < alpha = False 
-        | otherwise = True
+            | p < alpha = False 
+            | otherwise = True
 
 recurse :: [Bit] -> [Float] -> Float -> IO [Bit]
 recurse bits rnds alpha  
