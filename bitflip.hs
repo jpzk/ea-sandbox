@@ -25,27 +25,34 @@ type Probability = Float
 
 onemax :: [Bit] -> Int
 onemax bits = foldl (\x y -> x + y) 0 (map convert bits)
-    where convert bit | bit == True = 1 | bit == False = 0
-
-evolution :: [Bit] -> [Bit] -> [Bit] 
-evolution bits flips = map flipit (zip bits flips)
-    where flipit (x,y) = (not x) && y
+    where convert bit 
+        | bit == True = 1 
+        | bit == False = 0
 
 flips :: Probability -> [Probability] -> [Bit]
 flips alpha randoms = map (cut alpha) randoms 
-    where cut alpha p | p < alpha = False | otherwise = True
+    where cut alpha p 
+        | p < alpha = False 
+        | otherwise = True
 
 recurse :: [Bit] -> [Float] -> Float -> IO [Bit]
 recurse bits rnds alpha  
     | onemax bits == length bits = return bits 
-    | otherwise = do 
-        putStrLn (show bits)
-        recurse mutated restrandoms alpha
+    | otherwise = continue bits rnds alpha  
+
+mutate :: [Bit] -> [Bit] -> [Bit] 
+mutate bits flips = map flipit (zip bits flips)
+    where flipit (x,y) = (not x) && y
+
+continue :: [Bit] -> [Float] -> Float -> IO [Bit]
+continue bits rnds alpha = do 
+    putStrLn (show bits)
+    recurse mutated rnds' alpha
     where 
-        mutated = evolution bits (flips alpha randomfloats)
-        restrandoms = drop (length bits) rnds
+        mutated = mutate bits (flips alpha randomfloats)
+        rnds' = drop (length bits) rnds
         randomfloats = take (length bits) rnds
- 
+
 main :: IO [Bit]
 main = do 
     recurse example randomlist alpha
@@ -53,3 +60,4 @@ main = do
         alpha = 0.25
         example = [False, False, False, False] 
         randomlist = ((randoms (mkStdGen 42)) :: [Float])
+
