@@ -1,6 +1,6 @@
 # ea-sandbox
 
-This repository is a public repository for some of my evolutionary-algorithms I implemented. Use it as an alternative example for these algorithms, just in case you want to learn evolutionary algorithms, which is great! The publication of Hans-Georg Beyer and Hans-Paul Schwefel [http://www.cs.bham.ac.uk/~pxt/NIL/es.pdf](PDF-file) is a comprehensive introduction to evolution strategies. In the following descriptions are illustrated. 
+This repository is a public repository for some of my evolutionary-algorithms I implemented. Use it as an alternative example for these algorithms, just in case you want to learn evolutionary algorithms, which is great! The publication of Hans-Georg Beyer and Hans-Paul Schwefel [http://www.cs.bham.ac.uk/~pxt/NIL/es.pdf](PDF-file) is a comprehensive introduction to evolution strategies. In the following descriptions are illustrated. For a quick overview consider [http://en.wikipedia.org/wiki/Evolution_strategy](Wikipedia)
 
 ## Basic information
 
