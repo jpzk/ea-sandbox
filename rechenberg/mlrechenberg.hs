@@ -17,11 +17,12 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 
 import System.Random
 import Data.Random.Normal
+import Data.List
 
-{- (m+l)-EA with Rechenbergs 1/5-rule.
+{- (m+l)-EA with Rechenbergs 1/5th-rule.
  - Jendrik Poloczek <jendrik.poloczek@uni-oldenburg.de> -}
 
-type Mu = Integer
+type Mu = Int
 type Lambda = Integer
 type Dimension = Int
 type Population = [Vector]
@@ -35,6 +36,7 @@ type Probability = Float
  - to another. It defines a state of evolution parameters. -}
 
 data Configuration = Configuration {
+    mu :: Mu,
     lambda :: Lambda,
     sigma :: Sigma,
     alpha :: Alpha,
@@ -46,7 +48,20 @@ data Configuration = Configuration {
  - step in the evolution function.-}
 
 fitness :: Vector -> Fitness
-fitness x = foldl (\x y -> x + y*y) 0 x
+fitness x = foldl (\x y -> x + y * y) 0 x
+
+{- This ordering function is used by the select function. -}
+
+fitnessOrder :: Vector -> Vector -> Ordering
+fitnessOrder x y 
+    | fitness x < fitness y = LT
+    | fitness x > fitness y = GT
+    | otherwise = EQ
+
+{- This function is used to select mu mutated childern. -}
+
+select :: Population -> Mu -> Population 
+select pop mu = take mu (sortBy fitnessOrder pop) 
 
 {- These functions mutate a population with a given sigma and StdGen, which 
  - is created in every iteration of evolution. -}
@@ -55,18 +70,17 @@ mutate :: Population -> Sigma -> StdGen -> Population
 mutate pop sigma gen = mutate' pop mutations
     where mutations = (normals' (0, sigma) gen :: [Float])
 
-mutate' :: Population -> [Float] -> Population
-mutate' (x:xs) mutations 
-    | xs == [] = x 
-    | otherwise = mutateBy x : mutate' xs (drop (length x) mutations)
-    where mutateBy x = map (\x y -> x+y) $ zip x (take (length x) mutations)
+mutate' :: Population -> [Float] -> Population 
+mutate' [] randoms = []
+mutate' pop randoms = (m (head pop)) : (mutate' (drop 1 pop) (drop 1 randoms))
+    where m x = map (\(x, y) -> x + y) $ zip x (take (length x) randoms)
 
 {- These combine functions are required to combine parents. It's important
  - to know that combinePairs is applied on random lists (for indices to 
  - combine) which are bound by the IO evolution function. -}
 
 combine :: Vector -> Vector -> Vector
-combine r s = map (\(x,y) -> (x+y)/2) $ zip r s 
+combine r s = map (\(x,y) -> (x + y) / 2) $ zip r s 
 
 combinePairs :: Population -> Lambda -> StdGen -> Population
 combinePairs pop lambda gen = combinePairs' 0 lambda pop rndindices
@@ -118,8 +132,9 @@ success pop fit = better / popsize
 
 configurate :: Population -> Configuration -> StdGen -> StdGen -> Configuration
 configurate pop config pgen mgen = 
-    Configuration newlambda newsigma newalpha newbest pgen mgen 
+    Configuration newmu newlambda newsigma newalpha newbest pgen mgen 
     where
+        newmu = (mu config)
         newlambda = (lambda config)
         newsigma = rechenberg (sigma config) successprob (alpha config)
         newalpha = (alpha config) 
@@ -127,15 +142,18 @@ configurate pop config pgen mgen =
         successprob = success pop (lastbestfitness config)
 
 children :: Population -> Configuration -> Population 
-children pop config = mutate combined (sigma config) (mutationStdGen config) 
-    where combined = combinePairs pop (lambda config) (pairingStdGen config)
+children pop config = selected 
+    where
+        selected = select mutated (mu config)
+        mutated = mutate combined (sigma config) (mutationStdGen config)
+        combined = combinePairs pop (lambda config) (pairingStdGen config)
 
 {- main evolution function which constructs the trajectory of populations.
  - the infinite random lists are consumed by mutation and combining.-}
 
 evolution :: IO [Population] -> Configuration -> IO [Population]
 evolution pop config
-    | lastbestfitness config < 0.1 = pop
+    | lastbestfitness config < 0.001 = pop
     | otherwise = do
         current <- pop
         pgen <- newStdGen
@@ -148,9 +166,12 @@ evolution pop config
 
 main :: IO ()
 main = do
-    rndgen <- getStdGen
-    putStrLn (show (initialPopulation rndgen))
-    {-evolution (initialPopulation rndgen)-}
+    gen <- newStdGen
+    pgen <- newStdGen
+    mgen <- newStdGen
+    result <- evolution (return ([initialPop gen])) (initialConfig mgen pgen)
+    putStrLn (show result)
     return ()
     where 
-        initialPopulation gen = (generate 2 2 gen 1.0)
+        initialConfig mgen pgen = Configuration 10 20 1.0 0.5 10.0 mgen pgen
+        initialPop gen = (generate 2 2 gen 1.0)
