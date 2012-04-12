@@ -31,13 +31,39 @@ type Sigma = Float
 type Alpha = Float
 type Probability = Float
 
-{- mutation consumes an infinite random list -}
+{- The configuration record is changed when switching from one population 
+ - to another. It defines a state of evolution parameters. -}
 
-mutate :: Vector -> Sigma -> StdGen -> Vector
-mutate x sigma gen = map (\(x,y) -> x+y) $ zip x randoms
-    where randoms = normals' (0, sigma) gen :: Vector
+data Configuration = Configuration {
+    lambda :: Lambda,
+    sigma :: Sigma,
+    alpha :: Alpha,
+    lastbestfitness :: Fitness,
+    mutationStdGen :: StdGen,
+    pairingStdGen :: StdGen}
 
-{- constructing a tupel list of parents to combine -}
+{- This is the fitness function, which we're trying to minimize with each 
+ - step in the evolution function.-}
+
+fitness :: Vector -> Fitness
+fitness x = foldl (\x y -> x + y*y) 0 x
+
+{- These functions mutate a population with a given sigma and StdGen, which 
+ - is created in every iteration of evolution. -}
+
+mutate :: Population -> Sigma -> StdGen -> Population
+mutate pop sigma gen = mutate' pop mutations
+    where mutations = (normals' (0, sigma) gen :: [Float])
+
+mutate' :: Population -> [Float] -> Population
+mutate' (x:xs) mutations 
+    | xs == [] = x 
+    | otherwise = mutateBy x : mutate' xs (drop (length x) mutations)
+    where mutateBy x = map (\x y -> x+y) $ zip x (take (length x) mutations)
+
+{- These combine functions are required to combine parents. It's important
+ - to know that combinePairs is applied on random lists (for indices to 
+ - combine) which are bound by the IO evolution function. -}
 
 combine :: Vector -> Vector -> Vector
 combine r s = map (\(x,y) -> (x+y)/2) $ zip r s 
@@ -55,8 +81,9 @@ combinePairs' i lambda pop rndindices
         combine' = combine (pop !! (indices !! 0)) (pop !! (indices !! 1))
         next = combinePairs' (i+1) lambda pop (drop 2 rndindices)
 
-{- generate and generate' are used to generate vectors from a 
- - normal distribution with sigma -}
+{- These two functions are required to generate an initial population 
+ - by a given lambda (size of population) and dimension (dimensions of the
+ - individuals. -} 
 
 generate :: Lambda -> Dimension -> StdGen -> Sigma -> Population
 generate lambda dim gen sigma = generate' 0 lambda dim randoms
@@ -68,11 +95,9 @@ generate' i lambda dim randoms
     | i == lambda = []
     where next = generate' (i+1) lambda dim (drop dim randoms)    
 
-{- main evolution function which constructs the trajectory of populations.
- - the infinite random lists are consumed by mutation and combining.-}
-
-fitness :: Vector -> Fitness
-fitness x = foldl (\x y -> x + y*y) 0 x
+{- These two functions are required to use rechenberg's 1/5-rule
+ - the first changes sigma according to the success probability
+ - of the latter. Alpha is a constant. -}
 
 rechenberg :: Sigma -> Probability -> Alpha -> Sigma
 rechenberg oldsigma successprob alpha 
@@ -80,16 +105,52 @@ rechenberg oldsigma successprob alpha
     | successprob < 1.0/5.0 = oldsigma * alpha
     | otherwise = oldsigma
 
-evolution :: [Population] -> (StdGen, Alpha, Sigma, Fitness) -> [Population]
-evolution population (gen, alpha, oldsigma, lastbest)
-    | minimum fitnesses < 0.1 = population 
-    | otherwise = population ++ [last population]
+success :: Population -> Fitness -> Probability
+success pop fit = better / popsize
     where 
-        newsigma = rechenberg oldsigma successprob alpha
-        fitnesses = map fitness (last population)
-        successprob = 1.0/5.0
+        better = fromIntegral (length (smaller fitnesses)) :: Float
+        fitnesses = map fitness pop
+        popsize = fromIntegral (length pop) :: Float
+        smaller = filter (\x -> x < fit)  
+
+{- The configuration record is changed when switching from one population 
+ - to another. It defines a state of evolution parameters. -}
+
+configurate :: Population -> Configuration -> StdGen -> StdGen -> Configuration
+configurate pop config pgen mgen = 
+    Configuration newlambda newsigma newalpha newbest pgen mgen 
+    where
+        newlambda = (lambda config)
+        newsigma = rechenberg (sigma config) successprob (alpha config)
+        newalpha = (alpha config) 
+        newbest = minimum (map fitness pop)
+        successprob = success pop (lastbestfitness config)
+
+children :: Population -> Configuration -> Population 
+children pop config = mutate combined (sigma config) (mutationStdGen config) 
+    where combined = combinePairs pop (lambda config) (pairingStdGen config)
+
+{- main evolution function which constructs the trajectory of populations.
+ - the infinite random lists are consumed by mutation and combining.-}
+
+evolution :: IO [Population] -> Configuration -> IO [Population]
+evolution pop config
+    | lastbestfitness config < 0.1 = pop
+    | otherwise = do
+        current <- pop
+        pgen <- newStdGen
+        mgen <- newStdGen
+        next <- evolution (return ([offspring (last current)])) 
+            (configurate (last current) config pgen mgen)
+        return (current ++ next)
+    where 
+        offspring last = children last config 
 
 main :: IO ()
 main = do
-    srnd <- getStdGen
-    putStrLn (show (mutate [0.0, 0.0, 0.0] 1.0 srnd))
+    rndgen <- getStdGen
+    putStrLn (show (initialPopulation rndgen))
+    {-evolution (initialPopulation rndgen)-}
+    return ()
+    where 
+        initialPopulation gen = (generate 2 2 gen 1.0)
