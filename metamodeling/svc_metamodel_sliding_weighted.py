@@ -18,6 +18,20 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+'''
+NOTES
+
+The meta model quality should be rated somehow. The approaches by KNN
+meta model quality might not apply to this case of SVC meta modeling. 
+Therefore I try different approaches experimentally. 
+
+First approach: Let c be the amount of generated children and n + m = c.
+Splitting the generated children and validate the feasibility of n children
+by the meta model and the feasibility of m children by the constraint 
+function. The m children might be feasible where the meta model predicts
+unfeasibilty. Therefore the meta model needs to be corrected. 
+'''
+
 from random import * 
 from sklearn import svm
 from numpy import array
@@ -153,7 +167,6 @@ class TestEnvironment:
         # the filtern with meta model and filtering with the 
         # true constraint function.
         beta = 0.5
-        
         cut = int(math.floor(beta * len(children)))
         meta_children = children[:cut]
         constraint_children = children[cut:]
@@ -162,7 +175,6 @@ class TestEnvironment:
         
         # Filter by true feasibility with constraind function, here we
         # can update the sliding feasibles and infeasibles.
-        classification_errors = 0.0
         feasible_children = []
         
         for meta_feasible in meta_feasible_children: 
@@ -171,7 +183,6 @@ class TestEnvironment:
                 self._sliding_feasibles.append(meta_feasible)
             else:
                 self._sum_wrong_class += 1
-                classification_errors += 1
                 self._sliding_infeasibles.append(meta_feasible)
 
         # Filter the other part of the cut with the true constraint function. 
@@ -179,18 +190,14 @@ class TestEnvironment:
         for child in constraint_children:
             if(self.is_feasible(child)):
                 feasible_children.append(child)
+                # append this to _sliding_feasibles because it is a correct
+                # feasible and near the current population.
                 self._sliding_feasibles.append(child)
             else:
+                # append this to _sliding_infeasibles because it is a correct
+                # infeasible and near the current population.
                 self._sliding_infeasibles.append(child)
 
-        # This is not really the quality, because the classification of 
-        # infeasible could be wrong, too. The true quality could only
-        # be determined if the solutions classified infeasible would be 
-        # checked with the constraint function.
-        meta_model_quality =\
-            1 - (classification_errors / len(meta_feasible_children))
-
-        # Train the meta model if model quality is under acceptable quality
         self.train_metamodel(\
             self._sliding_feasibles,
             self._sliding_infeasibles)
@@ -204,8 +211,7 @@ class TestEnvironment:
 
         # only for visual output purpose.
         print "generation " + str(generation) +\
-        " smallest fitness " + str(fitness_of_best) +\
-        " metamodel quality " + str(meta_model_quality)
+        " smallest fitness " + str(fitness_of_best) 
 
         # update sigma according to rechenberg.
 #        new_sigma = self.rechenberg(
