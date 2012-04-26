@@ -20,6 +20,7 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 
 from random import * 
 from sklearn import svm
+from numpy import array
 
 '''
 mu+lambda EA with rechenberg-sigma gauss mutation for minimizing
@@ -27,11 +28,11 @@ sum(map(lambda x : pow(x,2), x)) with tangent constraint
 sum(x) - 2.0 >= 0 for each valid solution. 
 
 generate_valid_population is a python generator, which generates
-only valid, defined by is_valid function, population (random
+only valid, defined by is_feasible function, population (random
 solutions)
 
 generate_valid_children is a python generator, which generates
-only valid, defined by is_valid function, children. 
+only valid, defined by is_feasible function, children. 
 
 def run(dimensions, size, m, l, alpha, sigma):
     dimensions: R^dimensions
@@ -44,19 +45,56 @@ def run(dimensions, size, m, l, alpha, sigma):
 Jendrik Poloczek <jendrik.poloczek@uni-oldenburg.de>
 '''
 
-class TestEnvironment:
+class SVCMetaModel:
+    """ SVC meta model which classfies feasible and infeasible points """
 
-    _count_is_valid = 0
+    def train(feasible, infeasible):
+        """ Train a meta model classification with new points """
+
+        points_svm = array(infeasible) + array(feasible)
+        labels = [-1] * len(infeasible) + [1] * len(feasible) 
+        self._clf = svm.SVC()
+        self._clf.fit(points_svm, labels)
+
+    def check_feasibilty(point):
+        """ Check the feasibility with meta model """
+
+        prediction = self._clf.predict(point) 
+        if(prediction < 0):
+            return False
+        else:
+            return True                
+
+class TestEnvironment:
+    """ TestEnvironment is used for measuring function calls. """
+
+    _count_is_feasible = 0
+    _count_is_meta_feasible = 0
+    _count_train_metamodel = 0
     _count_fitness = 0
 
+    _meta_model = SVCMetaModel()
+
     def print_statistics(self):
-        print("constraint function calls: " + str(self._count_is_valid))
+        print("constraint function calls: " + str(self._count_is_feasible))
+        print("meta model function calls: " + str(self._count_is_meta_feasible))
         print("fitness function calls: " + str(self._count_fitness))
+        print("train function calls: " + str(self._count_train_metamodel))
 
     # return true if solution is valid, otherwise false.
-    def is_valid(self, x):
-        self._count_is_valid = self._count_is_valid + 1
+    def is_feasible(self, x):
+        self._count_is_feasible += 1
         return sum(x) - 2.0 >= 0
+
+    # return true if solution is feasible in meta model, otherwise false.
+    def is_meta_feasible(self, x):
+        self._count_is_meta_feasible += 1
+        return _meta_model.check_feasiblity(x)
+
+    # train the metamodel with given points
+    def train_metamodel(self, feasible, infeasible):
+        self._count_train_metamodel += 1
+        self._meta_model.train(feasible, infeasible)
 
     # return fitness, 0 is best.
     def fitness(self, x):
@@ -92,8 +130,15 @@ class TestEnvironment:
         while(True):
             parent = map(lambda x : ((x * random()) - 0.5) * size *2,
                 [1] * d)
-            if(self.is_valid(parent)):
+            if(self.is_feasible(parent)):
                 yield(parent)            
+
+    # python generator for inifinte list of parent population
+    def generate_population(self, d, size):
+         while(True):
+            parent = map(lambda x : ((x * random()) - 0.5) * size *2,
+                [1] * d)
+            yield(parent)            
 
     # python generator for infinite list of valid children with 
     # mutated and recombined with given parents.
@@ -101,8 +146,15 @@ class TestEnvironment:
         while(True):
             child = self.mutate(self.combine(sample(parents,2)),
                 sigma)
-            if(self.is_valid(child)):
+            if(self.is_feasible(child)):
                 yield child
+
+    # python generator for infinite list of feasible and infeasible 
+    # children. mutated and recombined with given parents.
+    def generate_children(self, parents, sigma):
+        while(True):
+            child = self.mutate(self.combine(sample(parents,2)), sigma)
+            yield child
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -129,7 +181,7 @@ class TestEnvironment:
             self.success_probability(children, lastfitness),
             alpha)
 
-        if(2-1*pow(10,-3) < fitness_of_best < 2+1*pow(10,-3)):
+        if(2 - 1 * pow(10, -3) < fitness_of_best < 2 + 1 * pow(10, -3)):
             print next_population[0]
             return True
         else:
