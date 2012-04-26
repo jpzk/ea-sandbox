@@ -34,12 +34,9 @@ which are really feasible and infeasible and are classified wrong by the
 meta model are more important in the correction of the meta model. 
 '''
 
-from random import * 
-from sklearn import svm
-from numpy import array
+from math import floor
 from collections import deque # used for sliding window of individuals
-
-import math
+from svc_evolution_strategy import SVCEvolutionStrategy
 
 '''
 mu+lambda EA with rechenberg-sigma gauss mutation for minimizing
@@ -57,103 +54,10 @@ def run(dimensions, size, m, l, alpha, sigma):
 Jendrik Poloczek <jendrik.poloczek@uni-oldenburg.de>
 '''
 
-class SVCMetaModel:
-    """ SVC meta model which classfies feasible and infeasible points """
+class SVCSlidingWeighted(SVCEvolutionStrategy): 
 
-    def train(self, feasible, infeasible):
-        """ Train a meta model classification with new points """
-
-        points_svm = [i for i in infeasible] + [f for f in feasible]
-        labels = [-1] * len(infeasible) + [1] * len(feasible) 
-        self._clf = svm.SVC()
-        self._clf.fit(points_svm, labels)
-
-    def check_feasibility(self, point):
-        """ Check the feasibility with meta model """
-
-        prediction = self._clf.predict(point) 
-        if(prediction < 0):
-            return False
-        else:
-            return True                
-
-class TestEnvironment:
-    """ TestEnvironment is used for measuring function calls. """
-
-    _count_is_feasible = 0
-    _count_is_meta_feasible = 0
-    _count_train_metamodel = 0
-    _count_fitness = 0
-    _sum_wrong_class = 0
-
-    _meta_model = SVCMetaModel()
     _sliding_feasibles = deque(maxlen = 50) 
     _sliding_infeasibles = deque(maxlen = 50)
-
-    def print_statistics(self):
-        print("constraint function calls: " + str(self._count_is_feasible))
-        print("meta model function calls: " + str(self._count_is_meta_feasible))
-        print("fitness function calls: " + str(self._count_fitness))
-        print("train function calls: " + str(self._count_train_metamodel))
-        print("sum wrong classification:" + str(self._sum_wrong_class))
-
-    # return true if solution is valid, otherwise false.
-    def is_feasible(self, x):
-        self._count_is_feasible += 1
-        return sum(x) - 2.0 >= 0
-
-    # return true if solution is feasible in meta model, otherwise false.
-    def is_meta_feasible(self, x):
-        self._count_is_meta_feasible += 1
-        return self._meta_model.check_feasibility(x)
-
-    # train the metamodel with given points
-    def train_metamodel(self, feasible, infeasible):
-        self._count_train_metamodel += 1
-        self._meta_model.train(feasible, infeasible)
-
-    # return fitness, 0 is best.
-    def fitness(self, x):
-        self._count_fitness = self._count_fitness + 1
-        return sum(map(lambda x : pow(x,2), x)) 
-
-    # return combined child of parents x,y
-    def combine(self, pair): 
-        return map(lambda i,j : (i+j)/2.0, pair[0], pair[1]) 
-
-    # mutate child with gauss devriation 
-    def mutate(self, child, sigma):
-        return map(lambda value : value + gauss(0, sigma), child)
-
-    # return sorted (best, smallest, first) list of parents
-    def sortedbest(self, children):
-        return sorted(children, key=lambda child : self.fitness(child))
-
-    # return new sigma (rechenberg)
-    def rechenberg(self, old_sigma, success_probability, alpha):
-        if success_probability > 1.0/5.0: return old_sigma / alpha
-        if success_probability < 1.0/5.0: return old_sigma * alpha
-        return sigma
-
-    # return success_probabilty (rechenberg)
-    def success_probability(self, children, success_fitness):
-        return len(filter(
-            lambda child: self.fitness(child) <= success_fitness, 
-            children)) / len(children)
-
-    # python generator for inifinte list of parent population
-    def generate_population(self, d, size):
-         while(True):
-            parent = map(lambda x : ((x * random()) - 0.5) * size *2,
-                [1] * d)
-            yield(parent)            
-
-    # python generator for infinite list of feasible and infeasible 
-    # children. mutated and recombined with given parents.
-    def generate_children(self, parents, sigma):
-        while(True):
-            child = self.mutate(self.combine(sample(parents,2)), sigma)
-            yield child
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -169,7 +73,7 @@ class TestEnvironment:
         # the filtern with meta model and filtering with the 
         # true constraint function.
         beta = 0.5
-        cut = int(math.floor(beta * len(children)))
+        cut = int(floor(beta * len(children)))
         meta_children = children[:cut]
         constraint_children = children[cut:]
 
@@ -215,12 +119,6 @@ class TestEnvironment:
         print "generation " + str(generation) +\
         " smallest fitness " + str(fitness_of_best) 
 
-        # update sigma according to rechenberg.
-#        new_sigma = self.rechenberg(
-#            sigma, 
-#            self.success_probability(feasible_children, lastfitness),
-#            alpha)
-
         new_sigma = sigma
 
         if(2 - 1 * pow(10, -2) < fitness_of_best < 2 + 1 * pow(10, -2)):
@@ -261,6 +159,5 @@ class TestEnvironment:
 
         return result
 
-env = TestEnvironment()
+env = SVCSlidingWeighted()
 env.run(2, 10, 15, 100, 0.5, 1)
-env.print_statistics()
