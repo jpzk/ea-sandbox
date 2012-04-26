@@ -46,6 +46,8 @@ class SVCSliding(SVCEvolutionStrategy):
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
         alpha, sigma)):
+        
+        self._count_generations += 1
 
         # generate l-children union with parents, 
         # take the m best.
@@ -122,5 +124,5 @@ class SVCSliding(SVCEvolutionStrategy):
 
         return result
 
-env = SVCSliding()
-env.run(2, 10, 15, 100, 0.5, 1)
+#env = SVCSliding()
+#env.run(2, 10, 15, 100, 0.5, 1)

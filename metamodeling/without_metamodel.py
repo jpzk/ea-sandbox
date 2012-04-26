@@ -18,12 +18,7 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from random import * 
-from sklearn import svm
-from numpy import array
-from collections import deque # used for sliding window of individuals
-
-import math
+from svc_evolution_strategy import SVCEvolutionStrategy
 
 '''
 mu+lambda EA with rechenberg-sigma gauss mutation for minimizing
@@ -41,68 +36,13 @@ def run(dimensions, size, m, l, alpha, sigma):
 Jendrik Poloczek <jendrik.poloczek@uni-oldenburg.de>
 '''
 
-class TestEnvironment:
-    """ TestEnvironment is used for measuring function calls. """
-
-    _count_is_feasible = 0
-    _count_fitness = 0
-    _sum_wrong_class = 0
-
-    def print_statistics(self):
-        print("constraint function calls: " + str(self._count_is_feasible))
-        print("fitness function calls: " + str(self._count_fitness))
-
-    # return true if solution is valid, otherwise false.
-    def is_feasible(self, x):
-        self._count_is_feasible += 1
-        return sum(x) - 2.0 >= 0
-
-    # return fitness, 0 is best.
-    def fitness(self, x):
-        self._count_fitness = self._count_fitness + 1
-        return sum(map(lambda x : pow(x,2), x)) 
-
-    # return combined child of parents x,y
-    def combine(self, pair): 
-        return map(lambda i,j : (i+j)/2.0, pair[0], pair[1]) 
-
-    # mutate child with gauss devriation 
-    def mutate(self, child, sigma):
-        return map(lambda value : value + gauss(0, sigma), child)
-
-    # return sorted (best, smallest, first) list of parents
-    def sortedbest(self, children):
-        return sorted(children, key=lambda child : self.fitness(child))
-
-    # return new sigma (rechenberg)
-    def rechenberg(self, old_sigma, success_probability, alpha):
-        if success_probability > 1.0/5.0: return old_sigma / alpha
-        if success_probability < 1.0/5.0: return old_sigma * alpha
-        return sigma
-
-    # return success_probabilty (rechenberg)
-    def success_probability(self, children, success_fitness):
-        return len(filter(
-            lambda child: self.fitness(child) <= success_fitness, 
-            children)) / len(children)
-
-    # python generator for inifinte list of parent population
-    def generate_population(self, d, size):
-         while(True):
-            parent = map(lambda x : ((x * random()) - 0.5) * size *2,
-                [1] * d)
-            yield(parent)            
-
-    # python generator for infinite list of feasible and infeasible 
-    # children. mutated and recombined with given parents.
-    def generate_children(self, parents, sigma):
-        while(True):
-            child = self.mutate(self.combine(sample(parents,2)), sigma)
-            yield child
+class WithoutMetaModel(SVCEvolutionStrategy):
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
         alpha, sigma)):
+
+        self._count_generations += 1
 
         # generate l-children union with parents, 
         # take the m best.
@@ -124,12 +64,6 @@ class TestEnvironment:
         # only for visual output purpose.
         print "generation " + str(generation) +\
         " smallest fitness " + str(fitness_of_best) 
-
-        # update sigma according to rechenberg.
-#        new_sigma = self.rechenberg(
-#            sigma, 
-#            self.success_probability(feasible_children, lastfitness),
-#            alpha)
 
         new_sigma = sigma
     
@@ -162,6 +96,5 @@ class TestEnvironment:
 
         return result
 
-env = TestEnvironment()
-env.run(2, 10, 15, 100, 0.5, 1)
-env.print_statistics()
+#env = WithoutMetaModel()
+#env.run(2, 10, 15, 100, 0.5, 1)

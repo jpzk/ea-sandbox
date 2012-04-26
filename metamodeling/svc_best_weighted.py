@@ -43,6 +43,8 @@ class SVCBestWeighted(SVCEvolutionStrategy):
     def _run(self, (population, generation, m, l, lastfitness,\
         alpha, sigma)):
 
+        self._count_generations += 1
+
         # generate l-children union with parents, 
         # take the m best.
         childgen = self.generate_children(population, sigma)
@@ -109,8 +111,6 @@ class SVCBestWeighted(SVCEvolutionStrategy):
             l, fitness_of_best, alpha, new_sigma)
 
     def run(self, dimensions, size, m, l, alpha, sigma):
-        # create random population d-dimensional 
-        # in interval [-s, s] but valid!
         
         genpop = self.generate_population(dimensions, size)   
         population = [genpop.next() for x in range(0, m)]
@@ -147,6 +147,6 @@ class SVCBestWeighted(SVCEvolutionStrategy):
 
         return result
 
-env = SVCBestWeighted()
-env.run(2, 10, 15, 100, 0.5, 1)
+#env = SVCBestWeighted()
+#env.run(2, 10, 15, 100, 0.5, 1)
 

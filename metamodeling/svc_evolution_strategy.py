@@ -24,12 +24,14 @@ class SVCEvolutionStrategy:
     _count_is_meta_feasible = 0
     _count_train_metamodel = 0
     _count_fitness = 0
+    _count_generations = 0
     _sum_wrong_class = 0
     _meta_model = SVCMetaModel()
 
     def get_statistics(self):
         return {
-            "contraint-calls" : self._count_is_feasible,
+            "generations" : self._count_generations,
+            "constraint-calls" : self._count_is_feasible,
             "metamodel-calls" : self._count_is_meta_feasible,
             "fitness-function-calls" : self._count_fitness,
             "train-function-calls" : self._count_train_metamodel,
