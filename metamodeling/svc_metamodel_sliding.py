@@ -163,12 +163,14 @@ class TestEnvironment:
                 classification_errors += 1
                 self._sliding_infeasibles.append(meta_feasible)
 
+        # This is not really the quality, because the classification of 
+        # infeasible could be wrong, too. The true quality could only
+        # be determined if the solutions classified infeasible would be 
+        # checked with the constraint function.
         meta_model_quality =\
             1 - (classification_errors / len(meta_feasible_children))
 
         # Train the meta model if model quality is under acceptable quality
-        #acceptable = 0.8
-        #if(meta_model_quality < acceptable):
         self.train_metamodel(\
             self._sliding_feasibles,
             self._sliding_infeasibles)
