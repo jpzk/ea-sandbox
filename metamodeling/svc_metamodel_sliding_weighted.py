@@ -29,7 +29,9 @@ First approach: Let c be the amount of generated children and n + m = c.
 Splitting the generated children and validate the feasibility of n children
 by the meta model and the feasibility of m children by the constraint 
 function. The m children might be feasible where the meta model predicts
-unfeasibilty. Therefore the meta model needs to be corrected. 
+unfeasibilty. Therefore the meta model needs to be corrected. The points 
+which are really feasible and infeasible and are classified wrong by the
+meta model are more important in the correction of the meta model. 
 '''
 
 from random import * 
