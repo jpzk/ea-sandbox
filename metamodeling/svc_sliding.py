@@ -98,13 +98,13 @@ class SVCSliding(SVCEvolutionStrategy):
         # in interval [-s, s] but valid!
         
         genpop = self.generate_population(dimensions, size)   
-        population = [genpop.next() for x in range(0, m)]
         
         # check for feasiblity and initialize sliding feasible and 
         # infeasible populations.
 
         feasible_parents = []
-        for parent in population: 
+        while(len(feasible_parents) < m): 
+            parent = genpop.next()
             if(self.is_feasible(parent)):
                 feasible_parents.append(parent)
                 self._sliding_feasibles.append(parent)

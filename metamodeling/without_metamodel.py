@@ -47,10 +47,10 @@ class WithoutMetaModel(SVCEvolutionStrategy):
         # generate l-children union with parents, 
         # take the m best.
         childgen = self.generate_children(population, sigma)
-        children = [childgen.next() for child in range(0,l)]
 
         feasible_children = []
-        for child in children:
+        while(len(feasible_children) < l): 
+            child = childgen.next()
             if(self.is_feasible(child)):
                 feasible_children.append(child)
         
@@ -79,13 +79,13 @@ class WithoutMetaModel(SVCEvolutionStrategy):
         # in interval [-s, s] but valid!
         
         genpop = self.generate_population(dimensions, size)   
-        population = [genpop.next() for x in range(0, m)]
         
         # check for feasiblity and initialize sliding feasible and 
         # infeasible populations.
 
         feasible_parents = []
-        for parent in population: 
+        while(len(feasible_parents) < m):
+            parent = genpop.next()
             if(self.is_feasible(parent)):
                 feasible_parents.append(parent)
 

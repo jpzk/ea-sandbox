@@ -18,13 +18,13 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from svc_sliding import SVCSliding 
+from svc_sliding_weighted import SVCSlidingWeighted
 from svc_best_weighted import SVCBestWeighted
 from without_metamodel import WithoutMetaModel
 
 import csv
 
-writer = csv.writer(open('data/experimentA.csv', 'wb'), delimiter=';')
+writer = csv.writer(open('data/experimentB.csv', 'wb'), delimiter=';')
 writer.writerow(\
     ["method",
     "train-function-calls",
@@ -34,7 +34,7 @@ writer.writerow(\
     "fitness-function-calls", 
     "generations"])
 
-for i in range(0, 100):
+for i in range(0, 50):
     method = WithoutMetaModel()    
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
@@ -47,12 +47,12 @@ for i in range(0, 100):
         stats["fitness-function-calls"],
         stats["generations"]])
 
-for i in range(0, 100):
-    method = SVCSliding()    
+for i in range(0, 50):
+    method = SVCSlidingWeighted()    
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
     writer.writerow(\
-        ["SVCSliding",
+        ["SVCSlidingWeighted",
         stats["train-function-calls"],
         stats["sum-wrong-classification"],
         stats["constraint-calls"],
@@ -60,7 +60,7 @@ for i in range(0, 100):
         stats["fitness-function-calls"],
         stats["generations"]])
 
-for i in range(0, 100):
+for i in range(0, 50):
     method = SVCBestWeighted()    
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
