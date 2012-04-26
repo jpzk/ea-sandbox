@@ -22,7 +22,7 @@ from random import *
 
 '''
 mu+lambda EA with rechenberg-sigma gauss mutation for minimizing
-sum(map(lambda x : pow(x,2), x)) with tangent restriction
+sum(map(lambda x : pow(x,2), x)) with tangent constraint 
 sum(x) - 2.0 >= 0 for each valid solution.
 
 generate_valid_population is a python generator, which generates
