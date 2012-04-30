@@ -1,5 +1,7 @@
 # Experiments
 
+15+100 EA with tangent constraint on sphere function, best fitness is minimum. A local SVC metamodel is used to approximate the tangent constraint. These experiments only use the default (sklearn-svc) C and gamma values for the SVC parameterization.  
+
 ## Experiment A
 
 ![plot](http://i.imgur.com/1tDcW.png)
