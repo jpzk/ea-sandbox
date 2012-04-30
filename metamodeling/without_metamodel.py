@@ -20,22 +20,6 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 
 from svc_evolution_strategy import SVCEvolutionStrategy
 
-'''
-mu+lambda EA with rechenberg-sigma gauss mutation for minimizing
-sum(map(lambda x : pow(x,2), x)) with tangent constraint 
-sum(x) - 2.0 >= 0 for each valid solution. 
-
-def run(dimensions, size, m, l, alpha, sigma):
-    dimensions: R^dimensions
-    size: values of [-size, size] possible
-    m: mu, size of population, amount of parents
-    l: amount of generated children
-    alpha: factor of rechenberg
-    sigma: start sigma for rechenberg
-
-Jendrik Poloczek <jendrik.poloczek@uni-oldenburg.de>
-'''
-
 class WithoutMetaModel(SVCEvolutionStrategy):
 
     # main evolution 

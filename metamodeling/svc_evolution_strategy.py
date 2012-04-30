@@ -70,10 +70,17 @@ class SVCEvolutionStrategy:
         return sorted(children, key=lambda child : self.fitness(child))
 
     # return new sigma (rechenberg)
-    def rechenberg(self, old_sigma, success_probability, alpha):
-        if success_probability > 1.0/5.0: return old_sigma / alpha
-        if success_probability < 1.0/5.0: return old_sigma * alpha
-        return sigma
+    def rechenberg(self, old_sigma, success_probability, alpha, minstep=False):
+        if minstep != False: 
+            if old_sigma < minstep: 
+                return old_sigma 
+        if success_probability > 1.0/5.0: 
+            sigma = old_sigma / alpha
+            return sigma
+        if success_probability < 1.0/5.0: 
+            sigma = old_sigma * alpha
+            return sigma
+        return old_sigma
 
     # return success_probabilty (rechenberg)
     def success_probability(self, children, success_fitness):

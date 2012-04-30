@@ -18,41 +18,9 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-'''
-NOTES
-
-The meta model quality should be rated somehow. The approaches by KNN
-meta model quality might not apply to this case of SVC meta modeling. 
-Therefore I try different approaches experimentally. 
-
-First approach: Let c be the amount of generated children and n + m = c.
-Splitting the generated children and validate the feasibility of n children
-by the meta model and the feasibility of m children by the constraint 
-function. The m children might be feasible where the meta model predicts
-unfeasibilty. Therefore the meta model needs to be corrected. The points 
-which are really feasible and infeasible and are classified wrong by the
-meta model are more important in the correction of the meta model. 
-'''
-
 from math import floor
 from collections import deque # used for sliding window of individuals
 from svc_evolution_strategy import SVCEvolutionStrategy
-
-'''
-mu+lambda EA with rechenberg-sigma gauss mutation for minimizing
-sum(map(lambda x : pow(x,2), x)) with tangent constraint 
-sum(x) - 2.0 >= 0 for each valid solution. 
-
-def run(dimensions, size, m, l, alpha, sigma):
-    dimensions: R^dimensions
-    size: values of [-size, size] possible
-    m: mu, size of population, amount of parents
-    l: amount of generated children
-    alpha: factor of rechenberg
-    sigma: start sigma for rechenberg
-
-Jendrik Poloczek <jendrik.poloczek@uni-oldenburg.de>
-'''
 
 class SVCSlidingWeighted(SVCEvolutionStrategy): 
 
@@ -159,5 +127,5 @@ class SVCSlidingWeighted(SVCEvolutionStrategy):
 
         return result
 
-env = SVCSlidingWeighted()
-env.run(2, 10, 15, 100, 0.5, 1)
+#env = SVCSlidingWeighted()
+#env.run(2, 10, 15, 100, 0.5, 1)
