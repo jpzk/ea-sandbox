@@ -20,7 +20,7 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 
 from svc_evolution_strategy import SVCEvolutionStrategy
 
-class WithoutMetaModel(SVCEvolutionStrategy):
+class WithoutConstraintMetaModel(SVCEvolutionStrategy):
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
