@@ -32,4 +32,21 @@
 
 15+100 EA with tangent constraint on sphere function, best fitness is minimum. 200 samples per method. Methods: WithoutMetaModel with Death Penalty and SVCSlidingWeighted with Sliding Window Size = 50, beta = 0.90 and SVCBestWeighted with beta = 0.90.
 
+## Experiment F
+
+![plot](http://i.imgur.com/7oadn.png)
+
+15+100 EA with tangent constraint on sphere function, best fitness is minimum. 200 samples per method. Methods: WithoutMetaModel with Death Penalty and SVCSlidingWeighted with Sliding Window Size = 50, beta = 0.5 and SVCBestWeighted with beta = 0.5, and SVCBestSlidingWeighted with Window Size = 50 and beta = 0.5.
+
+## Experiment G 
+
+![plot](http://i.imgur.com/s6DbM.png)
+
+15+100 EA with tangent constraint on sphere function, best fitness is minimum. 200 samples per method. Methods: WithoutMetaModel with Death Penalty and SVCSlidingWeighted with Sliding Window Size = 50, beta = 0.75 and SVCBestWeighted with beta = 0.75, and SVCBestSlidingWeighted with Window Size = 50 and beta = 0.75.
+
+## Experiment H 
+
+![plot](http://i.imgur.com/Nls9P.png)
+
+15+100 EA with tangent constraint on sphere function, best fitness is minimum. 200 samples per method. Methods: WithoutMetaModel with Death Penalty and SVCSlidingWeighted with Sliding Window Size = 50, beta = 0.75 and SVCBestWeighted with beta = 0.75, and SVCBestSlidingWeighted with Window Size = 50 and beta = 0.75.
 
