@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from math import floor
+
 from svc_parameterized_meta_model import SVCParameterizedMetaModel
 from svc_crossvalidation_strategy import SVCCrossvalidationStrategy
 
@@ -41,11 +43,11 @@ class SVCCrossvalidationGrid(SVCCrossvalidationStrategy):
 
         # seperating into n (fold) seperate equal-sized sets
        
-        group_size_feasible = floor(len(feasible) / self._fold)
+        group_size_feasible = int(floor(len(feasible) / self._fold))
         groups_feasible =\
             [list(t) for t in zip(*[iter(feasible)] * group_size_feasible)]       
 
-        group_size_infeasible = floor(len(infeasible) / self._fold)
+        group_size_infeasible = int(floor(len(infeasible) / self._fold))
         groups_infeasible =\
             [list(t) for t in zip(*[iter(infeasible)] * group_size_infeasible)] 
         
@@ -109,8 +111,7 @@ class SVCCrossvalidationGrid(SVCCrossvalidationStrategy):
                         best_training_feasible = training_feasible
                         best_training_infeasible = training_infeasible
         
-        return SVCParameterizedMetaModel(\
-            best_training_feasible,
+        return (best_training_feasible,
             best_training_infeasible,
             best_parameter_c,
             best_parameter_gamma)

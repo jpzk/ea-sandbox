@@ -19,13 +19,14 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from math import floor
+
 from svc_evolution_strategy import SVCEvolutionStrategy
-from svc_crossvalidation_random import SVCCrossvalidationRandom
+from svc_crossvalidation_grid import SVCCrossvalidationGrid
 from svc_scaling_standardscore import SVCScalingStandardscore
 
-class SVCBestWeighted(SVCEvolutionStrategy):
+class SVCCrossvalidatedBestWeighted(SVCEvolutionStrategy):
 
-    _crossvalidation = SVCCrossvalidationRandom(fold = 5)
+    _crossvalidation = SVCCrossvalidationGrid(fold = 5)
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -86,14 +87,15 @@ class SVCBestWeighted(SVCEvolutionStrategy):
         scaled_best_feasibles = self._scaling.scale(best_feasibles)
         scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
 
-        parameter_c = m + m 
-        parameter_gamma = 0.0
+        best_parameters = self._crossvalidation.crossvalidate(\
+            scaled_best_feasibles,
+            scaled_best_infeasibles)
 
         self.train_metamodel(\
-            scaled_best_feasibles,
-            scaled_best_infeasibles,
-            parameter_c,
-            parameter_gamma)
+            best_parameters[0],
+            best_parameters[1],
+            best_parameters[2],
+            best_parameters[3])
 
         fitness_of_best = self.fitness(next_population[0])
         fitness_of_worst = self.fitness(\
@@ -143,14 +145,15 @@ class SVCBestWeighted(SVCEvolutionStrategy):
         scaled_best_feasibles = self._scaling.scale(best_feasibles)
         scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
 
-        parameter_c = m + m
-        parameter_gamma = 0.0
+        best_parameters = self._crossvalidation.crossvalidate(\
+            scaled_best_feasibles,
+            scaled_best_infeasibles)
 
         self.train_metamodel(\
-            scaled_best_feasibles,
-            scaled_best_infeasibles,
-            parameter_c,
-            parameter_gamma)
+            best_parameters[0],
+            best_parameters[1],
+            best_parameters[2],
+            best_parameters[3])
 
         result = self._run((feasible_parents, 0, m, l, 0, alpha, sigma))
 
@@ -159,6 +162,6 @@ class SVCBestWeighted(SVCEvolutionStrategy):
 
         return result
 
-env = SVCBestWeighted()
+env = SVCCrossvalidatedBestWeighted()
 env.run(2, 10, 15, 100, 0.5, 1)
 
