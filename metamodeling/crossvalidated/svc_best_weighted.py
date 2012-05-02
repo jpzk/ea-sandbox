@@ -21,6 +21,7 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 from math import floor
 from svc_evolution_strategy import SVCEvolutionStrategy
 from svc_crossvalidation_random import SVCCrossvalidationRandom
+from svc_scaling_standardscore import SVCScalingStandardscore
 
 class SVCBestWeighted(SVCEvolutionStrategy):
 
@@ -46,7 +47,11 @@ class SVCBestWeighted(SVCEvolutionStrategy):
         meta_children = children[:cut]
         constraint_children = children[cut:]
 
-        meta_feasible_children = filter(self.is_meta_feasible, meta_children)
+        # scaling and filter feasible with meta model
+        scaled_meta_children = self._scaling.scale(meta_children)
+        meta_feasible_children = filter(\
+            self.is_meta_feasible, 
+            scaled_meta_children)
         
         # Filter by true feasibility with constraind function, here we
         # can update the sliding feasibles and infeasibles.
@@ -76,12 +81,17 @@ class SVCBestWeighted(SVCEvolutionStrategy):
         best_infeasibles = self.sortedbest(infeasible_children)[:m]
         best_feasibles = next_population[:m]
 
+        # scaling, scaling factors are kept in scaling attribute.
+        self._scaling = SVCScalingStandardscore(best_infeasibles + best_feasibles)
+        scaled_best_feasibles = self._scaling.scale(best_feasibles)
+        scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
+
         parameter_c = m + m 
         parameter_gamma = 0.0
 
         self.train_metamodel(\
-            best_feasibles,
-            best_infeasibles,
+            scaled_best_feasibles,
+            scaled_best_infeasibles,
             parameter_c,
             parameter_gamma)
 
@@ -128,12 +138,17 @@ class SVCBestWeighted(SVCEvolutionStrategy):
         best_feasibles = self.sortedbest(feasibles)[:m]
         best_infeasibles = self.sortedbest(infeasibles)[:m]
 
+        # scaling, scaling factors are kept in scaling attribute.
+        self._scaling = SVCScalingStandardscore(best_feasibles + best_infeasibles)
+        scaled_best_feasibles = self._scaling.scale(best_feasibles)
+        scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
+
         parameter_c = m + m
         parameter_gamma = 0.0
 
         self.train_metamodel(\
-            best_feasibles,
-            best_infeasibles,
+            scaled_best_feasibles,
+            scaled_best_infeasibles,
             parameter_c,
             parameter_gamma)
 
