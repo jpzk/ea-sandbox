@@ -19,14 +19,9 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from math import floor
+from svc_evolution_strategy import SVCEvolutionStrategy
 
-from svc_parameterized_evolution_strategy import SVCParameterizedEvolutionStrategy
-from svc_crossvalidation_grid import SVCCrossvalidationGrid
-from svc_scaling_standardscore import SVCScalingStandardscore
-
-class SVCCrossvalidatedBestWeighted(SVCParameterizedEvolutionStrategy):
-
-    _crossvalidation = SVCCrossvalidationGrid(fold = 5)
+class SVCBestWeighted(SVCEvolutionStrategy):
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -48,11 +43,7 @@ class SVCCrossvalidatedBestWeighted(SVCParameterizedEvolutionStrategy):
         meta_children = children[:cut]
         constraint_children = children[cut:]
 
-        # scaling and filter feasible with meta model
-        scaled_meta_children = self._scaling.scale(meta_children)
-        meta_feasible_children = filter(\
-            self.is_meta_feasible, 
-            scaled_meta_children)
+        meta_feasible_children = filter(self.is_meta_feasible, meta_children)
         
         # Filter by true feasibility with constraind function, here we
         # can update the sliding feasibles and infeasibles.
@@ -82,20 +73,9 @@ class SVCCrossvalidatedBestWeighted(SVCParameterizedEvolutionStrategy):
         best_infeasibles = self.sortedbest(infeasible_children)[:10]
         best_feasibles = next_population[:10]
 
-        # scaling, scaling factors are kept in scaling attribute.
-        self._scaling = SVCScalingStandardscore(best_infeasibles + best_feasibles)
-        scaled_best_feasibles = self._scaling.scale(best_feasibles)
-        scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
-
-        best_parameters = self._crossvalidation.crossvalidate(\
-            scaled_best_feasibles,
-            scaled_best_infeasibles)
-
         self.train_metamodel(\
-            best_parameters[0],
-            best_parameters[1],
-            best_parameters[2],
-            best_parameters[3])
+            best_feasibles,
+            best_infeasibles)
 
         fitness_of_best = self.fitness(next_population[0])
         fitness_of_worst = self.fitness(\
@@ -140,20 +120,9 @@ class SVCCrossvalidatedBestWeighted(SVCParameterizedEvolutionStrategy):
         best_feasibles = self.sortedbest(feasibles)[:10]
         best_infeasibles = self.sortedbest(infeasibles)[:10]
 
-        # scaling, scaling factors are kept in scaling attribute.
-        self._scaling = SVCScalingStandardscore(best_feasibles + best_infeasibles)
-        scaled_best_feasibles = self._scaling.scale(best_feasibles)
-        scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
-
-        best_parameters = self._crossvalidation.crossvalidate(\
-            scaled_best_feasibles,
-            scaled_best_infeasibles)
-
         self.train_metamodel(\
-            best_parameters[0],
-            best_parameters[1],
-            best_parameters[2],
-            best_parameters[3])
+            best_feasibles,
+            best_infeasibles)
 
         result = self._run((feasible_parents, 0, m, l, 0, alpha, sigma))
 
@@ -162,6 +131,6 @@ class SVCCrossvalidatedBestWeighted(SVCParameterizedEvolutionStrategy):
 
         return result
 
-#env = SVCCrossvalidatedBestWeighted()
+#env = SVCBestWeighted()
 #env.run(2, 10, 15, 100, 0.5, 1)
 

@@ -54,9 +54,15 @@ class SVCCrossvalidationGrid(SVCCrossvalidationStrategy):
         group_indices = range(0, self._fold - 1)
  
         # for each i, j, test_group_index
+    
+        for i in [(2*i)-self._lower_bound_c for i in range(0,((self._upper_bound_c+(-self._lower_bound_c))/2)+1)]:
+            #>>> [(2*i)-5 for i in range(0,((15+5)/2)+1)]
+            #[-5, -3, -1, 1, 3, 5, 7, 9, 11, 13, 15]
 
-        for i in range(self._lower_bound_c, self._upper_bound_c):
-            for j in range(self._lower_bound_gamma, self._upper_bound_gamma):
+            for j in [(2*j)-self._lower_bound_gamma for j in range(0,((self._upper_bound_gamma+(-self._lower_bound_gamma))/2)+1)]:
+                #>>> [(2*i)-15 for i in range(0,((3+15)/2)+1)]
+                #[-15, -13, -11, -9, -7, -5, -3, -1, 1, 3]
+                
                 for test_group_index in group_indices:
 
                     # selecting training groups and test group

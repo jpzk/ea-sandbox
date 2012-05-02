@@ -18,7 +18,7 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 from random import random, sample, gauss
 from svc_parameterized_meta_model import SVCParameterizedMetaModel
 
-class SVCEvolutionStrategy:
+class SVCParameterizedEvolutionStrategy:
 
     _count_is_feasible = 0
     _count_is_meta_feasible = 0
