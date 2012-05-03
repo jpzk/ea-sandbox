@@ -19,6 +19,7 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from svc_cv_best_sliding_weighted import SVCCVBestSlidingWeighted
+from svc_best_sliding_weighted import SVCBestSlidingWeighted
 from without_constraint_metamodel import WithoutConstraintMetaModel
 
 import csv
@@ -39,6 +40,19 @@ for i in range(0, 10):
     stats = method.get_statistics()
     writer.writerow(\
         ["WithoutMetaModel",
+        stats["train-function-calls"],
+        stats["sum-wrong-classification"],
+        stats["constraint-calls"],
+        stats["metamodel-calls"],
+        stats["fitness-function-calls"],
+        stats["generations"]])
+
+for i in range(0, 10):
+    method = SVCBestSlidingWeighted()    
+    method.run(2, 10, 15, 100, 0.5, 1)
+    stats = method.get_statistics()
+    writer.writerow(\
+        ["SVCBestSlidingWeighted",
         stats["train-function-calls"],
         stats["sum-wrong-classification"],
         stats["constraint-calls"],

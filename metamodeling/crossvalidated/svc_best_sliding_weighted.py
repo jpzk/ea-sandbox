@@ -20,16 +20,11 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 
 from math import floor
 from collections import deque # used for sliding window for best
+from svc_evolution_strategy import SVCEvolutionStrategy
 
-from svc_cv_evolution_strategy import SVCCVEvolutionStrategy
-from svc_scaling_standardscore import SVCScalingStandardscore
-from svc_cv_grid import SVCCVGrid
-
-class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
+class SVCBestSlidingWeighted(SVCEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
-    
-    _crossvalidation = SVCCVGrid(fold = 5) 
 
     _sliding_best_feasibles = deque(maxlen = 50)
     _sliding_best_infeasibles = deque(maxlen = 50)
@@ -55,11 +50,7 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
         meta_children = children[:cut]
         constraint_children = children[cut:]
 
-        # check scaled against meta model, BUT the unscaled against 
-        # the constraint function.
-        meta_feasible_children = filter(\
-            lambda child : self.is_meta_feasible(self._scaling.scale(child)), 
-            meta_children)
+        meta_feasible_children = filter(self.is_meta_feasible, meta_children)
         
         # Filter by true feasibility with constraind function, here we
         # can update the sliding feasibles and infeasibles.
@@ -85,38 +76,14 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
             self.sortedbest(population + feasible_children)[:m]
         
         map(self._sliding_best_infeasibles.append,
-            self.sortedbest(infeasible_children)[:50])
+            self.sortedbest(infeasible_children)[:m])
 
         map(self._sliding_best_feasibles.append,
-            next_population[:50])
-
-        sliding_best_infeasibles =\
-            [child for child in self._sliding_best_infeasibles]
-
-        sliding_best_feasibles =\
-            [child for child in self._sliding_best_feasibles]
-
-        # new scaling because sliding windows changes
-        self._scaling = SVCScalingStandardscore(\
-            sliding_best_feasibles + sliding_best_infeasibles)
-
-        scaled_best_feasibles = map(\
-            self._scaling.scale, 
-            self._sliding_best_feasibles)
-
-        scaled_best_infeasibles = map(\
-            self._scaling.scale,
-            self._sliding_best_infeasibles)                
-
-        best_parameters = self._crossvalidation.crossvalidate(\
-            scaled_best_feasibles,
-            scaled_best_infeasibles)
+            self.sortedbest(feasible_children)[:m])
 
         self.train_metamodel(\
-            best_parameters[0],
-            best_parameters[1],
-            best_parameters[2],
-            best_parameters[3])
+            self._sliding_best_feasibles,
+            self._sliding_best_infeasibles)
 
         fitness_of_best = self.fitness(next_population[0])
         fitness_of_worst = self.fitness(\
@@ -158,36 +125,14 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
             else:
                 infeasibles.append(parent)
 
-        # just to be sure 
-        while(len(infeasibles) < 50):
-            parent = genpop.next()
-            if(not self.is_feasible(parent)):
-                infeasibles.append(parent)
-
         # initial training of the meta model
 
-        best_feasibles = self.sortedbest(feasibles)[:50]
-        best_infeasibles = self.sortedbest(infeasibles)[:50]
- 
-        # adding to sliding windows
-
-        map(self._sliding_best_feasibles.append, best_feasibles)
-        map(self._sliding_best_infeasibles.append, best_infeasibles)
-
-        # scaling, scaling factors are kept in scaling attribute.
-        self._scaling = SVCScalingStandardscore(best_feasibles + best_infeasibles)
-        scaled_best_feasibles = self._scaling.scale(best_feasibles)
-        scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
-
-        best_parameters = self._crossvalidation.crossvalidate(\
-            scaled_best_feasibles,
-            scaled_best_infeasibles)
+        best_feasibles = self.sortedbest(feasibles)[:m]
+        best_infeasibles = self.sortedbest(infeasibles)[:m]
 
         self.train_metamodel(\
-            best_parameters[0],
-            best_parameters[1],
-            best_parameters[2],
-            best_parameters[3])
+            best_feasibles,
+            best_infeasibles)
 
         result = self._run((feasible_parents, 0, m, l, 0, alpha, sigma))
 
@@ -196,6 +141,6 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
 
         return result
 
-#env = SVCCVBestSlidingWeighted()
+#env = SVCBestSlidingWeighted()
 #env.run(2, 10, 15, 100, 0.5, 1)
 
