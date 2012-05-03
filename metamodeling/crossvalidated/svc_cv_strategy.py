@@ -15,16 +15,14 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from svc_parameterized_meta_model import SVCParameterizedMetaModel
-from svc_crossvalidation_strategy import SVCCrossvalidationStrategy
-
-class SVCCrossvalidationRandom(SVCCrossvalidationStrategy):
-    """ A strategy for crossvalidation """
+class SVCCVStrategy:
+    """ This is an abstract class which is derived in different cross 
+        validation methods. """
 
     def __init__(self, fold):
-        print("fold")
+        pass
 
     def tune_svc(self, feasible, infeasible):
         """ This method returns a pair (C, gamma) with classifcation rate
             is maximized. """
-        print("tune")            
+        pass

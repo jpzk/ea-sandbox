@@ -19,18 +19,25 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from math import floor
+from collections import deque # used for sliding window for best
 
-from svc_evolution_strategy import SVCEvolutionStrategy
-from svc_crossvalidation_grid import SVCCrossvalidationGrid
+from svc_cv_evolution_strategy import SVCCVEvolutionStrategy
 from svc_scaling_standardscore import SVCScalingStandardscore
+from svc_cv_grid import SVCCVGrid
 
-class SVCCrossvalidatedBestWeighted(SVCEvolutionStrategy):
+class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
+    """ Using the fittest feasible and infeasible individuals in a sliding
+        window (between generations) to build a meta model using SVC. """
+    
+    _crossvalidation = SVCCVGrid(fold = 5) 
 
-    _crossvalidation = SVCCrossvalidationGrid(fold = 5)
+    _sliding_best_feasibles = deque(maxlen = 10)
+    _sliding_best_infeasibles = deque(maxlen = 10)
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
         alpha, sigma)):
+        """ This method is called every generation. """
 
         self._count_generations += 1
 
@@ -48,18 +55,16 @@ class SVCCrossvalidatedBestWeighted(SVCEvolutionStrategy):
         meta_children = children[:cut]
         constraint_children = children[cut:]
 
-        # scaling and filter feasible with meta model
-        scaled_meta_children = self._scaling.scale(meta_children)
+        # check scaled against meta model, BUT the unscaled against 
+        # the constraint function.
         meta_feasible_children = filter(\
-            self.is_meta_feasible, 
-            scaled_meta_children)
+            lambda child : self.is_meta_feasible(self._scaling.scale(child)), 
+            meta_children)
         
         # Filter by true feasibility with constraind function, here we
         # can update the sliding feasibles and infeasibles.
         feasible_children = []
         infeasible_children = []
-        best_feasible = []
-        best_infeasible = []
         
         for meta_feasible in meta_feasible_children: 
             if(self.is_feasible(meta_feasible)):
@@ -79,13 +84,29 @@ class SVCCrossvalidatedBestWeighted(SVCEvolutionStrategy):
         next_population =\
             self.sortedbest(population + feasible_children)[:m]
         
-        best_infeasibles = self.sortedbest(infeasible_children)[:m]
-        best_feasibles = next_population[:m]
+        map(self._sliding_best_infeasibles.append,
+            self.sortedbest(infeasible_children)[:10])
 
-        # scaling, scaling factors are kept in scaling attribute.
-        self._scaling = SVCScalingStandardscore(best_infeasibles + best_feasibles)
-        scaled_best_feasibles = self._scaling.scale(best_feasibles)
-        scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
+        map(self._sliding_best_feasibles.append,
+            next_population[:10])
+
+        sliding_best_infeasibles =\
+            [child for child in self._sliding_best_infeasibles]
+
+        sliding_best_feasibles =\
+            [child for child in self._sliding_best_feasibles]
+
+        # new scaling because sliding windows changes
+        self._scaling = SVCScalingStandardscore(\
+            sliding_best_feasibles + sliding_best_infeasibles)
+
+        scaled_best_feasibles = map(\
+            self._scaling.scale, 
+            self._sliding_best_feasibles)
+
+        scaled_best_infeasibles = map(\
+            self._scaling.scale,
+            self._sliding_best_infeasibles)                
 
         best_parameters = self._crossvalidation.crossvalidate(\
             scaled_best_feasibles,
@@ -115,6 +136,8 @@ class SVCCrossvalidatedBestWeighted(SVCEvolutionStrategy):
             l, fitness_of_best, alpha, new_sigma)
 
     def run(self, dimensions, size, m, l, alpha, sigma):
+        """ This method initializes the population etc. And starts the 
+            recursion. """
         
         genpop = self.generate_population(dimensions, size)   
         
@@ -135,10 +158,21 @@ class SVCCrossvalidatedBestWeighted(SVCEvolutionStrategy):
             else:
                 infeasibles.append(parent)
 
+        # just to be sure 
+        while(len(infeasibles) < 10):
+            parent = genpop.next()
+            if(not self.is_feasible(parent)):
+                infeasibles.append(parent)
+
         # initial training of the meta model
 
-        best_feasibles = self.sortedbest(feasibles)[:m]
-        best_infeasibles = self.sortedbest(infeasibles)[:m]
+        best_feasibles = self.sortedbest(feasibles)[:10]
+        best_infeasibles = self.sortedbest(infeasibles)[:10]
+ 
+        # adding to sliding windows
+
+        map(self._sliding_best_feasibles.append, best_feasibles)
+        map(self._sliding_best_infeasibles.append, best_infeasibles)
 
         # scaling, scaling factors are kept in scaling attribute.
         self._scaling = SVCScalingStandardscore(best_feasibles + best_infeasibles)
@@ -162,6 +196,6 @@ class SVCCrossvalidatedBestWeighted(SVCEvolutionStrategy):
 
         return result
 
-env = SVCCrossvalidatedBestWeighted()
+env = SVCCVBestSlidingWeighted()
 env.run(2, 10, 15, 100, 0.5, 1)
 

@@ -18,9 +18,13 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 from math import floor
 
 from svc_parameterized_meta_model import SVCParameterizedMetaModel
-from svc_crossvalidation_strategy import SVCCrossvalidationStrategy
+from svc_cv_strategy import SVCCVStrategy
 
-class SVCCrossvalidationGrid(SVCCrossvalidationStrategy):
+# upper and lower bounds are based on
+# "A Practical Guide to Support Vector Classification"
+# Chih-Wei Hsu, Chih-Chung Chang and Chih-Jen Lin
+
+class SVCCVGrid(SVCCVStrategy):
     """ A strategy for crossvalidation """
 
     _lower_bound_c = -5
@@ -55,8 +59,8 @@ class SVCCrossvalidationGrid(SVCCrossvalidationStrategy):
  
         # for each i, j, test_group_index
 
-        for i in range(self._lower_bound_c, self._upper_bound_c):
-            for j in range(self._lower_bound_gamma, self._upper_bound_gamma):
+        for i in range(self._lower_bound_c, self._upper_bound_c, 2):
+            for j in range(self._lower_bound_gamma, self._upper_bound_gamma, 2):
                 for test_group_index in group_indices:
 
                     # selecting training groups and test group
@@ -110,7 +114,11 @@ class SVCCrossvalidationGrid(SVCCrossvalidationStrategy):
                         best_parameter_gamma = parameter_gamma
                         best_training_feasible = training_feasible
                         best_training_infeasible = training_infeasible
-        
+       
+        print("best accuracy: " + str(best_accuracy) +\
+            " best c: " + str(best_parameter_c) +\
+            " best gamma: "+ str(best_parameter_gamma))
+
         return (best_training_feasible,
             best_training_infeasible,
             best_parameter_c,

@@ -16,9 +16,9 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from random import random, sample, gauss
-from svc_meta_model import SVCMetaModel
+from svc_parameterized_meta_model import SVCParameterizedMetaModel
 
-class SVCEvolutionStrategy:
+class SVCCVEvolutionStrategy:
 
     _count_is_feasible = 0
     _count_is_meta_feasible = 0
@@ -26,7 +26,7 @@ class SVCEvolutionStrategy:
     _count_fitness = 0
     _count_generations = 0
     _sum_wrong_class = 0
-    _meta_model = SVCMetaModel()
+    _meta_model = SVCParameterizedMetaModel()
 
     def get_statistics(self):
         return {
@@ -48,9 +48,9 @@ class SVCEvolutionStrategy:
         return self._meta_model.check_feasibility(x)
 
     # train the metamodel with given points
-    def train_metamodel(self, feasible, infeasible):
+    def train_metamodel(self, feasible, infeasible, parameter_c, parameter_gamma):
         self._count_train_metamodel += 1
-        self._meta_model.train(feasible, infeasible)
+        self._meta_model.train(feasible, infeasible, parameter_c, parameter_gamma)
 
     # return fitness, 0 is best.
     def fitness(self, x):
