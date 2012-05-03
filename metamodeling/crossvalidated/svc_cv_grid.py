@@ -58,7 +58,6 @@ class SVCCVGrid(SVCCVStrategy):
         group_indices = range(0, self._fold - 1)
  
         # for each i, j, test_group_index
-
         for i in range(self._lower_bound_c, self._upper_bound_c, 2):
             for j in range(self._lower_bound_gamma, self._upper_bound_gamma, 2):
                 for test_group_index in group_indices:

@@ -80,5 +80,3 @@ class WithoutConstraintMetaModel(SVCEvolutionStrategy):
 
         return result
 
-#env = WithoutConstraintMetaModel()
-#env.run(2, 10, 15, 100, 0.5, 1)
