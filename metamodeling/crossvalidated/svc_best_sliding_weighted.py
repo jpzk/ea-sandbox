@@ -26,8 +26,11 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
 
-    _sliding_best_feasibles = deque(maxlen = 50)
-    _sliding_best_infeasibles = deque(maxlen = 50)
+    _beta = 0.9
+    _window_size = 50
+    _append_to_window = 10
+    _sliding_best_feasibles = deque(maxlen = _window_size)
+    _sliding_best_infeasibles = deque(maxlen = _window_size)
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -45,24 +48,34 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
         # meta model might be wrong, so we have to weighten between
         # the filtern with meta model and filtering with the 
         # true constraint function.
-        beta = 0.9
-        cut = int(floor(beta * len(children)))
-        meta_children = children[:cut]
+        cut = int(floor(self._beta * len(children)))
+        meta_children = children[:cut]        
         constraint_children = children[cut:]
 
+        # Filter by meta model
         meta_feasible_children = filter(self.is_meta_feasible, meta_children)
         
         # Filter by true feasibility with constraind function, here we
         # can update the sliding feasibles and infeasibles.
         feasible_children = []
         infeasible_children = []
-        
-        for meta_feasible in meta_feasible_children: 
+       
+        # Death penalty when feasible by meta model but is infeasible
+        for meta_feasible in meta_feasible_children:             
             if(self.is_feasible(meta_feasible)):
-                feasible_children.append(meta_feasible)               
+                feasible_children.append(meta_feasible)                
             else:
                 self._sum_wrong_class += 1
                 infeasible_children.append(meta_feasible)
+
+                # Because of Death Penalty we need a feasible reborn.
+                reborn = []
+                while(len(reborn) < 1):  
+                    generated = childgen.next()
+                    if(self.is_meta_feasible(generated)):
+                        if(self.is_feasible(generated)):
+                            reborn.append(generated)
+                feasible_children.extend(reborn)                  
 
         # Filter the other part of the cut with the true constraint function. 
         # Using this information to update the meta model.
@@ -71,15 +84,26 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
                 feasible_children.append(child)
             else:
                 infeasible_children.append(child) 
-        
+                # Because of Death Penalty we need a feasible reborn.
+
+                reborn = []
+                while(len(reborn) < 1):
+                    generated = childgen.next()
+                    if(self.is_feasible(generated)):
+                        reborn.append(generated)
+                feasible_children.extend(reborn)
+
+        # feasible_children contains exactly lambda feasible children
+        # and infeasible_children we're children classified infeasible
+        # by either meta model or constraint function.
         next_population =\
             self.sortedbest(population + feasible_children)[:m]
         
         map(self._sliding_best_infeasibles.append,
-            self.sortedbest(infeasible_children)[:m])
+            self.sortedbest(infeasible_children)[:self._append_to_window])
 
         map(self._sliding_best_feasibles.append,
-            self.sortedbest(feasible_children)[:m])
+            self.sortedbest(feasible_children)[:self._append_to_window])
 
         self.train_metamodel(\
             self._sliding_best_feasibles,
@@ -87,7 +111,7 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
 
         fitness_of_best = self.fitness(next_population[0])
         fitness_of_worst = self.fitness(\
-            next_population[len(next_population)-1])
+            next_population[len(next_population) - 1])
 
         # only for visual output purpose.
         print "generation " + str(generation) +\
@@ -117,6 +141,8 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
         best_infeasibles = []
         infeasibles = []
 
+        # generate a feasible population
+
         while(len(feasible_parents) < m):
             parent = genpop.next()
             if(self.is_feasible(parent)):
@@ -141,6 +167,6 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
 
         return result
 
-#env = SVCBestSlidingWeighted()
-#env.run(2, 10, 15, 100, 0.5, 1)
+env = SVCBestSlidingWeighted()
+env.run(2, 10, 15, 100, 0.5, 1)
 

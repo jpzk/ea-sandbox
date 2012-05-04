@@ -25,7 +25,10 @@ from svc_cv_grid import SVCCVGrid
 from svc_scaling_standardscore import SVCScalingStandardscore
 
 class SVCCVBestWeighted(SVCEvolutionStrategy):
+
     _crossvalidation = SVCCVGrid(fold = 5)
+    _beta = 0.9
+    _metamodel_amount = 10
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -42,8 +45,7 @@ class SVCCVBestWeighted(SVCEvolutionStrategy):
         # meta model might be wrong, so we have to weighten between
         # the filtern with meta model and filtering with the 
         # true constraint function.
-        beta = 0.90
-        cut = int(floor(beta * len(children)))
+        cut = int(floor(self._beta * len(children)))
         meta_children = children[:cut]
         constraint_children = children[cut:]
 
@@ -78,8 +80,8 @@ class SVCCVBestWeighted(SVCEvolutionStrategy):
         next_population =\
             self.sortedbest(population + feasible_children)[:m]
         
-        best_infeasibles = self.sortedbest(infeasible_children)[:10]
-        best_feasibles = next_population[:10]
+        best_infeasibles = self.sortedbest(infeasible_children)[:self._metamodel_amount]
+        best_feasibles = next_population[:self._metamodel_amount]
 
         # scaling, scaling factors are kept in scaling attribute.
         self._scaling = SVCScalingStandardscore(best_infeasibles + best_feasibles)

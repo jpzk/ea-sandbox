@@ -30,9 +30,10 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
         window (between generations) to build a meta model using SVC. """
     
     _crossvalidation = SVCCVGrid(fold = 5) 
-
-    _sliding_best_feasibles = deque(maxlen = 50)
-    _sliding_best_infeasibles = deque(maxlen = 50)
+    _window_size = 50
+    _beta = 0.9
+    _sliding_best_feasibles = deque(maxlen = self._window_size)
+    _sliding_best_infeasibles = deque(maxlen = self._window_size)
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -50,8 +51,7 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
         # meta model might be wrong, so we have to weighten between
         # the filtern with meta model and filtering with the 
         # true constraint function.
-        beta = 0.9
-        cut = int(floor(beta * len(children)))
+        cut = int(floor(self._beta * len(children)))
         meta_children = children[:cut]
         constraint_children = children[cut:]
 
@@ -85,10 +85,10 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
             self.sortedbest(population + feasible_children)[:m]
         
         map(self._sliding_best_infeasibles.append,
-            self.sortedbest(infeasible_children)[:50])
+            self.sortedbest(infeasible_children)[:self._window_size])
 
         map(self._sliding_best_feasibles.append,
-            next_population[:50])
+            next_population[:self._window_size])
 
         sliding_best_infeasibles =\
             [child for child in self._sliding_best_infeasibles]
@@ -166,8 +166,8 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
 
         # initial training of the meta model
 
-        best_feasibles = self.sortedbest(feasibles)[:50]
-        best_infeasibles = self.sortedbest(infeasibles)[:50]
+        best_feasibles = self.sortedbest(feasibles)[:self._window_size]
+        best_infeasibles = self.sortedbest(infeasibles)[:self._window_size]
  
         # adding to sliding windows
 

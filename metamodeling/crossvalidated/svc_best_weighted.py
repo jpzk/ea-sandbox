@@ -23,6 +23,8 @@ from svc_evolution_strategy import SVCEvolutionStrategy
 
 class SVCBestWeighted(SVCEvolutionStrategy):
 
+    _beta = 0.9
+
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
         alpha, sigma)):
