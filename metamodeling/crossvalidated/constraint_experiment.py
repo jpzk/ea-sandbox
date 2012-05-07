@@ -35,7 +35,7 @@ writer.writerow(\
     "metamodel-calls", 
     "fitness-function-calls", 
     "generations"])
-
+"""
 for i in range(0, 200):
     method = WithoutConstraintMetaModel() 
     method.run(2, 10, 15, 100, 0.5, 1)
@@ -49,7 +49,7 @@ for i in range(0, 200):
         stats["fitness-function-calls"],
         stats["generations"]])
     print "WithoutMetaModel " + str(i)
-
+"""
 for i in range(0, 200):
     method = SVCBestSlidingWeighted(0.9, 25, 10)
 
@@ -84,7 +84,7 @@ for i in range(0, 200):
         stats["fitness-function-calls"],
         stats["generations"]])
     print "SVCCVBestSlidingWeighted " + str(i)        
-
+"""
 for i in range(0, 200):
     method = SVCBestWeighted(beta = 0.9, amount_metamodel = 50)
     method.run(2, 10, 15, 100, 0.5, 1)
@@ -98,6 +98,6 @@ for i in range(0, 200):
         stats["fitness-function-calls"],
         stats["generations"]])
     print "SVCBestWeighted " + str(i)        
-"""
+
 #env = WithoutMetaModel()
 #env.run(2, 10, 15, 100, 0.5, 1)

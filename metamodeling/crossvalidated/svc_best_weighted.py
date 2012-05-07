@@ -66,9 +66,9 @@ class SVCBestWeighted(SVCEvolutionStrategy):
                 reborn = []
                 while(len(reborn) < 1):  
                     generated = childgen.next()
-                    if(self.is_meta_feasible(generated)):
-                        if(self.is_feasible(generated)):
-                            reborn.append(generated)
+                    #if(self.is_meta_feasible(generated)):
+                    if(self.is_feasible(generated)):
+                        reborn.append(generated)
                 feasible_children.extend(reborn)                  
                 
 
