@@ -97,7 +97,7 @@ class SVCCVEvolutionStrategy:
 
     # python generator for infinite list of feasible and infeasible 
     # children. mutated and recombined with given parents.
-    def generate_children(self, parents, sigma):
+    def generate_children(self, parents, sigma):       
         while(True):
             child = self.mutate(self.combine(sample(parents,2)), sigma)
             yield child

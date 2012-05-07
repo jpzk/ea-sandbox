@@ -76,12 +76,12 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
                 infeasible_children.append(meta_feasible)
                 
                 # Because of Death Penalty we need a feasible reborn.
-                reborn = []
+                reborn = []                
                 while(len(reborn) < 1):  
                     generated = childgen.next()
-                    if(self.is_meta_feasible(generated)):
-                        if(self.is_feasible(generated)):
-                            reborn.append(generated)
+                    #if(self.is_meta_feasible(generated)):
+                    if(self.is_feasible(generated)):
+                        reborn.append(generated)
                 feasible_children.extend(reborn)                  
 
         # Filter the other part of the cut with the true constraint function. 
