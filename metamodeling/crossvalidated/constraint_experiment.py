@@ -20,11 +20,12 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 
 from svc_cv_best_sliding_weighted import SVCCVBestSlidingWeighted
 from svc_best_sliding_weighted import SVCBestSlidingWeighted
+from svc_best_weighted import SVCBestWeighted
 from without_constraint_metamodel import WithoutConstraintMetaModel
 
 import csv
 
-writer = csv.writer(open('experiments/measurements/experimentA.csv', 'wb'), delimiter=';')
+writer = csv.writer(open('experiments/measurements/experimentC.csv', 'wb'), delimiter=';')
 writer.writerow(\
     ["method",
     "train-function-calls",
@@ -34,7 +35,7 @@ writer.writerow(\
     "fitness-function-calls", 
     "generations"])
 
-for i in range(0, 10):
+for i in range(0, 200):
     method = WithoutConstraintMetaModel()    
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
@@ -46,8 +47,9 @@ for i in range(0, 10):
         stats["metamodel-calls"],
         stats["fitness-function-calls"],
         stats["generations"]])
+    print "WithoutMetaModel " + str(i)
 
-for i in range(0, 10):
+for i in range(0, 200):
     method = SVCBestSlidingWeighted()    
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
@@ -59,8 +61,9 @@ for i in range(0, 10):
         stats["metamodel-calls"],
         stats["fitness-function-calls"],
         stats["generations"]])
+    print "SVCBestSlidingWeighted " + str(i)
 
-for i in range(0, 10):
+for i in range(0, 200):
     method = SVCCVBestSlidingWeighted()    
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
@@ -72,6 +75,21 @@ for i in range(0, 10):
         stats["metamodel-calls"],
         stats["fitness-function-calls"],
         stats["generations"]])
+    print "SVCCVBestSlidingWeighted " + str(i)        
+
+for i in range(0, 200):
+    method = SVCBestWeighted()    
+    method.run(2, 10, 15, 100, 0.5, 1)
+    stats = method.get_statistics()
+    writer.writerow(\
+        ["SVCBestWeighted",
+        stats["train-function-calls"],
+        stats["sum-wrong-classification"],
+        stats["constraint-calls"],
+        stats["metamodel-calls"],
+        stats["fitness-function-calls"],
+        stats["generations"]])
+    print "SVCBestWeighted " + str(i)        
 
 #env = WithoutMetaModel()
 #env.run(2, 10, 15, 100, 0.5, 1)

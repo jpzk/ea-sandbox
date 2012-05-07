@@ -24,6 +24,7 @@ from svc_evolution_strategy import SVCEvolutionStrategy
 class SVCBestWeighted(SVCEvolutionStrategy):
 
     _beta = 0.9
+    _amount_metamodel = 25 
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -40,8 +41,7 @@ class SVCBestWeighted(SVCEvolutionStrategy):
         # meta model might be wrong, so we have to weighten between
         # the filtern with meta model and filtering with the 
         # true constraint function.
-        beta = 0.90
-        cut = int(floor(beta * len(children)))
+        cut = int(floor(self._beta * len(children)))
         meta_children = children[:cut]
         constraint_children = children[cut:]
 
@@ -61,6 +61,16 @@ class SVCBestWeighted(SVCEvolutionStrategy):
                 self._sum_wrong_class += 1
                 infeasible_children.append(meta_feasible)
 
+                # Because of Death Penalty we need a feasible reborn.
+                reborn = []
+                while(len(reborn) < 1):  
+                    generated = childgen.next()
+                    if(self.is_meta_feasible(generated)):
+                        if(self.is_feasible(generated)):
+                            reborn.append(generated)
+                feasible_children.extend(reborn)                  
+                
+
         # Filter the other part of the cut with the true constraint function. 
         # Using this information to update the meta model.
         for child in constraint_children:
@@ -68,12 +78,20 @@ class SVCBestWeighted(SVCEvolutionStrategy):
                 feasible_children.append(child)
             else:
                 infeasible_children.append(child) 
-        
+                 # Because of Death Penalty we need a feasible reborn.
+
+                reborn = []
+                while(len(reborn) < 1):
+                    generated = childgen.next()
+                    if(self.is_feasible(generated)):
+                        reborn.append(generated)
+                feasible_children.extend(reborn)
+
         next_population =\
             self.sortedbest(population + feasible_children)[:m]
         
-        best_infeasibles = self.sortedbest(infeasible_children)[:10]
-        best_feasibles = next_population[:10]
+        best_infeasibles = self.sortedbest(infeasible_children)[:self._amount_metamodel]
+        best_feasibles = next_population[:self._amount_metamodel]
 
         self.train_metamodel(\
             best_feasibles,
@@ -103,30 +121,39 @@ class SVCBestWeighted(SVCEvolutionStrategy):
         # check for feasiblity and initialize sliding feasible and 
         # infeasible populations.
 
-        feasible_parents = []
-        best_feasibles = []
         feasibles = []
-        best_infeasibles = []
         infeasibles = []
+        best_feasibles = []
+        best_infeasibles = []
 
-        while(len(feasible_parents) < m):
+        while(len(feasibles) < m):
             parent = genpop.next()
             if(self.is_feasible(parent)):
-                feasible_parents.append(parent)
                 feasibles.append(parent)
             else:
                 infeasibles.append(parent)
 
+        # just to be sure 
+        while(len(infeasibles) < self._amount_metamodel):
+            parent = genpop.next()
+            if(not self.is_feasible(parent)):
+                infeasibles.append(parent)
+
+        while(len(feasibles) < self._amount_metamodel):
+            parent = genpop.next()
+            if(self.is_feasible(parent)):
+                feasibles.append(parent)
+
         # initial training of the meta model
 
-        best_feasibles = self.sortedbest(feasibles)[:10]
-        best_infeasibles = self.sortedbest(infeasibles)[:10]
+        best_feasibles = self.sortedbest(feasibles)[:self._amount_metamodel]
+        best_infeasibles = self.sortedbest(infeasibles)[:self._amount_metamodel]
 
         self.train_metamodel(\
             best_feasibles,
             best_infeasibles)
 
-        result = self._run((feasible_parents, 0, m, l, 0, alpha, sigma))
+        result = self._run((feasibles, 0, m, l, 0, alpha, sigma))
 
         while result != True:
             result = self._run(result)

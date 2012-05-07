@@ -30,10 +30,11 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
         window (between generations) to build a meta model using SVC. """
     
     _crossvalidation = SVCCVGrid(fold = 5) 
-    _window_size = 50
+    _window_size = 25 
     _beta = 0.9
-    _sliding_best_feasibles = deque(maxlen = self._window_size)
-    _sliding_best_infeasibles = deque(maxlen = self._window_size)
+    _append_to_window = 10 
+    _sliding_best_feasibles = deque(maxlen = _window_size)
+    _sliding_best_infeasibles = deque(maxlen = _window_size)
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -72,6 +73,15 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
             else:
                 self._sum_wrong_class += 1
                 infeasible_children.append(meta_feasible)
+                
+                # Because of Death Penalty we need a feasible reborn.
+                reborn = []
+                while(len(reborn) < 1):  
+                    generated = childgen.next()
+                    if(self.is_meta_feasible(generated)):
+                        if(self.is_feasible(generated)):
+                            reborn.append(generated)
+                feasible_children.extend(reborn)                  
 
         # Filter the other part of the cut with the true constraint function. 
         # Using this information to update the meta model.
@@ -80,15 +90,25 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
                 feasible_children.append(child)
             else:
                 infeasible_children.append(child) 
-        
+ 
+                # Because of Death Penalty we need a feasible reborn.
+                reborn = []
+                while(len(reborn) < 1):
+                    generated = childgen.next()
+                    if(self.is_feasible(generated)):
+                        reborn.append(generated)
+                feasible_children.extend(reborn)
+
+        # feasible_children contains exactly lambda feasible children
+        # and infeasible_children 
         next_population =\
             self.sortedbest(population + feasible_children)[:m]
         
         map(self._sliding_best_infeasibles.append,
-            self.sortedbest(infeasible_children)[:self._window_size])
+            self.sortedbest(infeasible_children)[:self._append_to_window])
 
         map(self._sliding_best_feasibles.append,
-            next_population[:self._window_size])
+            next_population[:self._append_to_window])
 
         sliding_best_infeasibles =\
             [child for child in self._sliding_best_infeasibles]
@@ -159,10 +179,15 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
                 infeasibles.append(parent)
 
         # just to be sure 
-        while(len(infeasibles) < 50):
+        while(len(infeasibles) < self._window_size):
             parent = genpop.next()
             if(not self.is_feasible(parent)):
                 infeasibles.append(parent)
+
+        while(len(feasibles) < self._window_size):
+            parent = genpop.next()
+            if(self.is_feasible(parent)):
+                feasibles.append(parent)
 
         # initial training of the meta model
 

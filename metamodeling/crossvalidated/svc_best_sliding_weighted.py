@@ -27,8 +27,8 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
         window (between generations) to build a meta model using SVC. """
 
     _beta = 0.9
-    _window_size = 50
-    _append_to_window = 10
+    _window_size = 25 
+    _append_to_window = 10 
     _sliding_best_feasibles = deque(maxlen = _window_size)
     _sliding_best_infeasibles = deque(maxlen = _window_size)
 
@@ -94,8 +94,7 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
                 feasible_children.extend(reborn)
 
         # feasible_children contains exactly lambda feasible children
-        # and infeasible_children we're children classified infeasible
-        # by either meta model or constraint function.
+        # and infeasible_children 
         next_population =\
             self.sortedbest(population + feasible_children)[:m]
         
@@ -153,8 +152,19 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
 
         # initial training of the meta model
 
-        best_feasibles = self.sortedbest(feasibles)[:m]
-        best_infeasibles = self.sortedbest(infeasibles)[:m]
+        # just to be sure 
+        while(len(infeasibles) < self._window_size):
+            parent = genpop.next()
+            if(not self.is_feasible(parent)):
+                infeasibles.append(parent)
+
+        while(len(feasibles) < self._window_size):
+            parent = genpop.next()
+            if(self.is_feasible(parent)):
+                feasibles.append(parent)
+
+        best_feasibles = self.sortedbest(feasibles)[:self._window_size]
+        best_infeasibles = self.sortedbest(infeasibles)[:self._window_size]
 
         self.train_metamodel(\
             best_feasibles,
@@ -167,6 +177,6 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
 
         return result
 
-env = SVCBestSlidingWeighted()
-env.run(2, 10, 15, 100, 0.5, 1)
+#env = SVCBestSlidingWeighted()
+#env.run(2, 10, 15, 100, 0.5, 1)
 
