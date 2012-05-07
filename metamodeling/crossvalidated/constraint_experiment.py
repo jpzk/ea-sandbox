@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from svc_cv_grid import SVCCVGrid
 from svc_cv_best_sliding_weighted import SVCCVBestSlidingWeighted
 from svc_best_sliding_weighted import SVCBestSlidingWeighted
 from svc_best_weighted import SVCBestWeighted
@@ -35,8 +36,9 @@ writer.writerow(\
     "fitness-function-calls", 
     "generations"])
 
+"""
 for i in range(0, 200):
-    method = WithoutConstraintMetaModel()    
+    method = WithoutConstraintMetaModel() 
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
     writer.writerow(\
@@ -48,9 +50,10 @@ for i in range(0, 200):
         stats["fitness-function-calls"],
         stats["generations"]])
     print "WithoutMetaModel " + str(i)
-
+"""
 for i in range(0, 200):
-    method = SVCBestSlidingWeighted()    
+    method = SVCBestSlidingWeighted(0.9, 25, 10)
+
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
     writer.writerow(\
@@ -64,7 +67,12 @@ for i in range(0, 200):
     print "SVCBestSlidingWeighted " + str(i)
 
 for i in range(0, 200):
-    method = SVCCVBestSlidingWeighted()    
+    method = SVCCVBestSlidingWeighted(
+        beta = 0.9, 
+        append_to_window = 10, 
+        window_size = 25,
+        crossvalidation = SVCCVGrid(fold = 5))
+
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
     writer.writerow(\
@@ -78,7 +86,7 @@ for i in range(0, 200):
     print "SVCCVBestSlidingWeighted " + str(i)        
 
 for i in range(0, 200):
-    method = SVCBestWeighted()    
+    method = SVCBestWeighted(beta = 0.9, amount_metamodel = 50)
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
     writer.writerow(\

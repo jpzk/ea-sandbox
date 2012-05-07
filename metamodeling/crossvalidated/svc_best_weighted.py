@@ -23,8 +23,9 @@ from svc_evolution_strategy import SVCEvolutionStrategy
 
 class SVCBestWeighted(SVCEvolutionStrategy):
 
-    _beta = 0.9
-    _amount_metamodel = 25 
+    def __init__(self, beta, amount_metamodel):
+        self._beta = beta
+        self._amount_metamodel = amount_metamodel
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\

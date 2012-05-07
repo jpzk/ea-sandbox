@@ -29,12 +29,13 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
     
-    _crossvalidation = SVCCVGrid(fold = 5) 
-    _window_size = 25 
-    _beta = 0.9
-    _append_to_window = 10 
-    _sliding_best_feasibles = deque(maxlen = _window_size)
-    _sliding_best_infeasibles = deque(maxlen = _window_size)
+    def __init__(self, beta, append_to_window, window_size, crossvalidation):
+        self._beta = beta
+        self._append_to_window = append_to_window
+        self._window_size = window_size
+        self._crossvalidation = crossvalidation
+        self._sliding_best_feasibles = deque(maxlen = self._window_size)
+        self._sliding_best_infeasibles = deque(maxlen = self._window_size)
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\

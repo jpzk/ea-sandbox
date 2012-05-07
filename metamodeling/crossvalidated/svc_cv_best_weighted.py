@@ -26,9 +26,10 @@ from svc_scaling_standardscore import SVCScalingStandardscore
 
 class SVCCVBestWeighted(SVCEvolutionStrategy):
 
-    _crossvalidation = SVCCVGrid(fold = 5)
-    _beta = 0.9
-    _metamodel_amount = 10
+    def __init__(self, beta, metamodel_amount, crossvalidation):
+        self._beta = beta
+        self._metamodel_amount = metamodel_amount
+        self._crossvalidation = crossvalidation
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
