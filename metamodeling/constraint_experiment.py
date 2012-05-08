@@ -18,9 +18,11 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from sklearn.cross_validation import KFold
 from scaling_standardscore import ScalingStandardscore
 from scaling_dummy import ScalingDummy
 from svc_cv_grid import SVCCVGrid
+from svc_cv_sklearn_grid import SVCCVSkGrid
 from svc_cv_best_sliding_weighted import SVCCVBestSlidingWeighted
 from svc_best_sliding_weighted import SVCBestSlidingWeighted
 from svc_best_weighted import SVCBestWeighted
@@ -68,12 +70,15 @@ for i in range(0, 200):
 
 """
 for i in range(0, 200):
-    method = SVCCVBestSlidingWeighted(
+    method = SVCCVBestSlidingWeighted(\
         beta = 0.9, 
         append_to_window = 10, 
         window_size = 25,
-        crossvalidation = SVCCVGrid(fold = 5),
-        scaling = ScalingDummy())
+        crossvalidation = SVCCVSkGrid(\
+            gamma_range = [2 ** i for i in range(-15 , 3, 2)],
+            C_range = [2 ** i for i in range(-5, 15, 2)],
+            cv_method = KFold(50, 5)),
+            scaling = ScalingDummy())
 
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
