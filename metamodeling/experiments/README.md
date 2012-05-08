@@ -4,6 +4,8 @@
 
 ## Experiment C
 
+### beta = 0.9
+
 15+100 EA with tangent constraint on sphere function, best fitness is minimum. 200 samples per method. Methods: WithoutMetaModel with Death Penalty; SVCSlidingBestWeighted with Death Penalty window size = 25 and beta = 0.9, append_to_window = 10; SVCCVSlidingBestWeighted with Death Penalty window size = 25, beta = 0.9 and with 5-fold crossvalidation and parameter C and gamma grid search and standard score scaling; SVCBestWeighted using amount_metamodel = 50 best feasibles and infeasibles and beta = 0.9. Termination on 10^-2 accuracy on 0.0.
 
 ### Constraint calls
@@ -13,3 +15,13 @@
 ### Generations
 ![](http://i.imgur.com/Ik2xD.png)
 
+### beta = 0.5
+
+15+100 EA with tangent constraint on sphere function, best fitness is minimum. 200 samples per method. Methods: WithoutMetaModel with Death Penalty; SVCSlidingBestWeighted with Death Penalty window size = 25 and beta = 0.5, append_to_window = 10; SVCCVSlidingBestWeighted with Death Penalty window size = 25, beta = 0.5 and with 5-fold crossvalidation and parameter C and gamma grid search and standard score scaling; SVCBestWeighted using amount_metamodel = 50 best feasibles and infeasibles and beta = 0.5. Termination on 10^-2 accuracy on 0.0.
+
+### Constraint calls
+![](http://i.imgur.com/GmKSY.png)
+### Wrong classification by meta model
+![](http://i.imgur.com/AOhkb.png)
+### Generations
+![](http://i.imgur.com/HPF6z.png)
