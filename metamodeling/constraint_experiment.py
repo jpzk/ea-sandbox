@@ -101,7 +101,7 @@ for i in range(0, 200):
             gamma_range = [2 ** i for i in range(-15 , 3, 2)],
             C_range = [2 ** i for i in range(-5, 15, 2)],
             cv_method = LeaveOneOut(50),
-            scaling = ScalingDummy())
+            scaling = ScalingDummy()))
 
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
