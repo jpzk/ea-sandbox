@@ -25,3 +25,7 @@
 ![](http://i.imgur.com/AOhkb.png)
 ### Generations
 ![](http://i.imgur.com/HPF6z.png)
+
+## Effect of standardscore scaling
+
+In the following the effect of standardscore scaling is investigated. 15+100 EA with tangent constraint on sphere function, best fitness is minimum. 200 samples per method. SVCCVSlidingBestWeighted with Death Penalty window size = 25, beta = 0.5 and with 5-fold crossvalidation and parameter C and gamma grid search with and without standard score scaling. Termination on 10^-2 accuracy on 0.0. (Experiment E)
