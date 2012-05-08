@@ -19,6 +19,7 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sklearn.cross_validation import KFold
+from sklearn.cross_validation import LeaveOneOut
 from scaling_standardscore import ScalingStandardscore
 from scaling_dummy import ScalingDummy
 from svc_cv_grid import SVCCVGrid
@@ -30,7 +31,7 @@ from without_constraint_metamodel import WithoutConstraintMetaModel
 
 import csv
 
-writer = csv.writer(open('experiments/measurements/experimentC_scaling.csv', 'wb'), delimiter=';')
+writer = csv.writer(open('experiments/measurements/experimentE.csv', 'wb'), delimiter=';')
 writer.writerow(\
     ["method",
     "train-function-calls",
@@ -55,7 +56,6 @@ for i in range(0, 200):
     print "WithoutMetaModel " + str(i)
 for i in range(0, 200):
     method = SVCBestSlidingWeighted(0.9, 25, 10)
-
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
     writer.writerow(\
@@ -83,7 +83,7 @@ for i in range(0, 200):
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
     writer.writerow(\
-        ["SVCCVBestSlidingWeighted",
+        ["SVCCVBestSlidingWeighted-5kfold",
         stats["train-function-calls"],
         stats["sum-wrong-classification"],
         stats["constraint-calls"],
@@ -91,6 +91,30 @@ for i in range(0, 200):
         stats["fitness-function-calls"],
         stats["generations"]])
     print "SVCCVBestSlidingWeighted " + str(i)        
+
+for i in range(0, 200):
+    method = SVCCVBestSlidingWeighted(\
+        beta = 0.9, 
+        append_to_window = 10, 
+        window_size = 25,
+        crossvalidation = SVCCVSkGrid(\
+            gamma_range = [2 ** i for i in range(-15 , 3, 2)],
+            C_range = [2 ** i for i in range(-5, 15, 2)],
+            cv_method = LeaveOneOut(50),
+            scaling = ScalingDummy())
+
+    method.run(2, 10, 15, 100, 0.5, 1)
+    stats = method.get_statistics()
+    writer.writerow(\
+        ["SVCCVBestSlidingWeighted-loo",
+        stats["train-function-calls"],
+        stats["sum-wrong-classification"],
+        stats["constraint-calls"],
+        stats["metamodel-calls"],
+        stats["fitness-function-calls"],
+        stats["generations"]])
+    print "SVCCVBestSlidingWeighted " + str(i)        
+
 """
 for i in range(0, 200):
     method = SVCBestWeighted(beta = 0.9, amount_metamodel = 50)
