@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from scaling_standardscore import ScalingStandardscore
+from scaling_dummy import ScalingDummy
 from svc_cv_grid import SVCCVGrid
 from svc_cv_best_sliding_weighted import SVCCVBestSlidingWeighted
 from svc_best_sliding_weighted import SVCBestSlidingWeighted
@@ -26,7 +28,7 @@ from without_constraint_metamodel import WithoutConstraintMetaModel
 
 import csv
 
-writer = csv.writer(open('experiments/measurements/experimentC_b.csv', 'wb'), delimiter=';')
+writer = csv.writer(open('experiments/measurements/experimentC_scaling.csv', 'wb'), delimiter=';')
 writer.writerow(\
     ["method",
     "train-function-calls",
@@ -49,7 +51,6 @@ for i in range(0, 200):
         stats["fitness-function-calls"],
         stats["generations"]])
     print "WithoutMetaModel " + str(i)
-"""
 for i in range(0, 200):
     method = SVCBestSlidingWeighted(0.9, 25, 10)
 
@@ -71,7 +72,8 @@ for i in range(0, 200):
         beta = 0.9, 
         append_to_window = 10, 
         window_size = 25,
-        crossvalidation = SVCCVGrid(fold = 5))
+        crossvalidation = SVCCVGrid(fold = 5),
+        scaling = ScalingDummy())
 
     method.run(2, 10, 15, 100, 0.5, 1)
     stats = method.get_statistics()
@@ -98,6 +100,6 @@ for i in range(0, 200):
         stats["fitness-function-calls"],
         stats["generations"]])
     print "SVCBestWeighted " + str(i)        
-
+"""
 #env = WithoutMetaModel()
 #env.run(2, 10, 15, 100, 0.5, 1)

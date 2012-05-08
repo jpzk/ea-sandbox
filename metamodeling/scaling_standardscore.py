@@ -16,12 +16,12 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from numpy import array
-from svc_scaling_strategy import SVCScalingStrategy
+from scaling_strategy import ScalingStrategy
 
-class SVCScalingStandardscore(SVCScalingStrategy):
+class ScalingStandardscore(ScalingStrategy):
     """ Scaling to standardscore """
 
-    def __init__(self, individuals):
+    def setup(self, individuals):    
         iarray = array(individuals)
         self._mean = iarray.mean()
         self._std = iarray.std()

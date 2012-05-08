@@ -22,18 +22,24 @@ from math import floor
 from collections import deque # used for sliding window for best
 
 from svc_cv_evolution_strategy import SVCCVEvolutionStrategy
-from svc_scaling_standardscore import SVCScalingStandardscore
 from svc_cv_grid import SVCCVGrid
 
 class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
     
-    def __init__(self, beta, append_to_window, window_size, crossvalidation):
+    def __init__(self, 
+        beta, 
+        append_to_window, 
+        window_size, 
+        crossvalidation,
+        scaling):
+
         self._beta = beta
         self._append_to_window = append_to_window
         self._window_size = window_size
         self._crossvalidation = crossvalidation
+        self._scaling = scaling            
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
 
@@ -118,8 +124,7 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
             [child for child in self._sliding_best_feasibles]
 
         # new scaling because sliding windows changes
-        self._scaling = SVCScalingStandardscore(\
-            sliding_best_feasibles + sliding_best_infeasibles)
+        self._scaling.setup(sliding_best_feasibles + sliding_best_infeasibles)
 
         scaled_best_feasibles = map(\
             self._scaling.scale, 
@@ -201,7 +206,7 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
         map(self._sliding_best_infeasibles.append, best_infeasibles)
 
         # scaling, scaling factors are kept in scaling attribute.
-        self._scaling = SVCScalingStandardscore(best_feasibles + best_infeasibles)
+        self._scaling.setup(best_feasibles + best_infeasibles)
         scaled_best_feasibles = self._scaling.scale(best_feasibles)
         scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
 

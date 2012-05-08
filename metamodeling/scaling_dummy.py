@@ -15,12 +15,14 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-class SVCScalingStrategy:
-    """ This is an abstract class which is derived in different scaling
-        methods. """
+from numpy import array
+from scaling_strategy import ScalingStrategy
 
-    def __init__(self, individuals):
-        pass
+class ScalingDummy(ScalingStrategy):
+    """ Scaling to standardscore """
+
+    def setup(self, individuals):    
+        return
 
     def scale(self, individuals):
-        pass
+        return individuals
