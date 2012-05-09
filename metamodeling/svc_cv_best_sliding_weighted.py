@@ -21,10 +21,10 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 from math import floor
 from collections import deque # used for sliding window for best
 
-from svc_cv_evolution_strategy import SVCCVEvolutionStrategy
+from svc_evolution_strategy import SVCEvolutionStrategy
 from svc_cv_grid import SVCCVGrid
 
-class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
+class SVCCVBestSlidingWeighted(SVCEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
     
@@ -139,10 +139,10 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
             scaled_best_infeasibles)
 
         self.train_metamodel(\
-            best_parameters[0],
-            best_parameters[1],
-            best_parameters[2],
-            best_parameters[3])
+            feasibles = best_parameters[0],
+            infeasibles = best_parameters[1],
+            parameter_C = best_parameters[2],
+            parameter_gamma = best_parameters[3])
 
         fitness_of_best = self.fitness(next_population[0])
         fitness_of_worst = self.fitness(\
@@ -215,10 +215,10 @@ class SVCCVBestSlidingWeighted(SVCCVEvolutionStrategy):
             scaled_best_infeasibles)
 
         self.train_metamodel(\
-            best_parameters[0],
-            best_parameters[1],
-            best_parameters[2],
-            best_parameters[3])
+            feasibles = best_parameters[0],
+            infeasibles = best_parameters[1],
+            parameter_C = best_parameters[2],
+            parameter_gamma = best_parameters[3])
 
         result = self._run((feasible_parents, 0, m, l, 0, alpha, sigma))
 

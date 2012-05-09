@@ -26,12 +26,21 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
 
-    def __init__(self, beta, window_size, append_to_window):
+    def __init__(\
+        self, 
+        beta, 
+        window_size, 
+        append_to_window,
+        parameter_C,
+        parameter_gamma):
+
         self._beta = beta 
         self._window_size = window_size
         self._append_to_window = append_to_window
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
+        self._parameter_C = parameter_C
+        self._parameter_gamma = parameter_gamma
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -106,8 +115,10 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
             self.sortedbest(feasible_children)[:self._append_to_window])
 
         self.train_metamodel(\
-            self._sliding_best_feasibles,
-            self._sliding_best_infeasibles)
+            feasibles = self._sliding_best_feasibles,
+            infeasibles = self._sliding_best_infeasibles,
+            parameter_C = self._parameter_C,
+            parameter_gamma = self._parameter_gamma)
 
         fitness_of_best = self.fitness(next_population[0])
         fitness_of_worst = self.fitness(\
@@ -168,8 +179,10 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
         best_infeasibles = self.sortedbest(infeasibles)[:self._window_size]
 
         self.train_metamodel(\
-            best_feasibles,
-            best_infeasibles)
+            feasibles = best_feasibles,
+            infeasibles = best_infeasibles,
+            parameter_C = self._parameter_C,
+            paraemter_gamma = self._parameter_gamma)
 
         result = self._run((feasible_parents, 0, m, l, 0, alpha, sigma))
 

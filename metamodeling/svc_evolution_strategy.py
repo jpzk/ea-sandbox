@@ -48,9 +48,19 @@ class SVCEvolutionStrategy:
         return self._meta_model.check_feasibility(x)
 
     # train the metamodel with given points
-    def train_metamodel(self, feasible, infeasible):
+    def train_metamodel(\
+        self, 
+        feasible, 
+        infeasible,
+        parameter_C = 1.0,
+        parameter_gamma = 0.0):
+
         self._count_train_metamodel += 1
-        self._meta_model.train(feasible, infeasible)
+        self._meta_model.train(\
+            feasible, 
+            infeasible,
+            parameter_C,
+            parameter_gamma)
 
     # return fitness, 0 is best.
     def fitness(self, x):

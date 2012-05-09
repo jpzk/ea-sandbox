@@ -20,12 +20,18 @@ from sklearn import svm
 class SVCMetaModel:
     """ SVC meta model which classfies feasible and infeasible points """
 
-    def train(self, feasible, infeasible):
+    def train(
+        self, 
+        feasible, 
+        infeasible, 
+        parameter_C = 1.0, 
+        parameter_gamma = 0.0):
+
         """ Train a meta model classification with new points """
 
         points_svm = [i for i in infeasible] + [f for f in feasible]
         labels = [-1] * len(infeasible) + [1] * len(feasible) 
-        self._clf = svm.SVC()
+        self._clf = svm.SVC(C = parameter_C, gamma = parameter_gamma)
         self._clf.fit(points_svm, labels)
 
     def check_feasibility(self, point):
@@ -35,6 +41,5 @@ class SVCMetaModel:
         if(prediction < 0):
             return False
         else:
-            return True                
-
+            return True
 
