@@ -22,7 +22,6 @@ from sklearn.svm import SVC
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import KFold
 from sklearn.cross_validation import LeaveOneOut
-from svc_parameterized_meta_model import SVCParameterizedMetaModel
 from svc_cv_strategy import SVCCVStrategy
 
 class SVCCVSkGrid(SVCCVStrategy):

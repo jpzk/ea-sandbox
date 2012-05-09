@@ -52,8 +52,8 @@ class SVCEvolutionStrategy:
         self, 
         feasible, 
         infeasible,
-        parameter_C = 1.0,
-        parameter_gamma = 0.0):
+        parameter_C,
+        parameter_gamma):
 
         self._count_train_metamodel += 1
         self._meta_model.train(\
